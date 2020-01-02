@@ -1,3 +1,4 @@
 library alt_bloc;
 
-export 'src/bloc_components.dart';
+export 'src/bloc_provider.dart';
+export 'src/bloc.dart';

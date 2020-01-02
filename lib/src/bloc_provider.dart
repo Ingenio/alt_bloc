@@ -1,59 +1,8 @@
 import 'dart:async';
-
 import 'package:flutter/widgets.dart';
+import 'bloc.dart';
 
-// todo move bloc to separate file
-// todo change StreamBuilder with own solution
 // todo write tests
-
-extension _BlocStreamController<T> on StreamController<T> {
-
-  void addIfNotClosed(T event) {
-    if (!isClosed) {
-      sink.add(event);
-    }
-  }
-
-}
-
-/// Business Logic Component
-abstract class Bloc<NS> {
-  final _stateHolders = <Type, _StateHolder<dynamic>>{};
-  final _navigationController = StreamController<NS>();
-
-  void addNavigation(NS state) {
-    _navigationController.sink.add(state);
-  }
-
-  void dispose() {
-    _stateHolders.forEach((_, holder) => holder.controller.close());
-    _stateHolders.clear();
-    _navigationController.close();
-  }
-
-  void registerState<US>({bool isBroadcast = false, US initialState}) {
-    if (_stateHolders.containsKey(US)) {
-      throw FlutterError('UI state with type $US already has been registered');
-    } else {
-      final stateHolder = _StateHolder<US>(isBroadcast ? StreamController<US>.broadcast() : StreamController<US>(),
-          initialState: initialState);
-      _stateHolders[US] = stateHolder;
-    }
-  }
-
-  void addState<US>(US uiState) {
-    US state = uiState;
-    _stateHolders[US].controller.add(state);
-  }
-}
-
-class _StateHolder<US> {
-  final StreamController<US> controller;
-
-  final US initialState;
-
-  _StateHolder(this.controller, {this.initialState});
-}
 
 typedef UpdateShouldNotify<T> = bool Function(T previous, T current);
 
@@ -72,7 +21,6 @@ class Provider<B extends Bloc> extends InheritedWidget {
   }
 
   static B of<B extends Bloc>(BuildContext context, {bool listen = false}) {
-//    final type = _getType<Provider<B>>();
     final Provider<B> provider = listen
         ? context.dependOnInheritedWidgetOfExactType<Provider<B>>()
         : context.getElementForInheritedWidgetOfExactType<Provider<B>>()?.widget;
@@ -111,26 +59,26 @@ class _BlocProviderState<B extends Bloc<NS>, NS> extends State<BlocProvider<B, N
       _bloc ??= widget.bloc();
     }
     super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
     _subscribeOnNavigationStream(widget.listener);
   }
 
+  @override
+  void didUpdateWidget(BlocProvider<B, NS> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _subscribeOnNavigationStream(widget.listener);
+  }
+
+
   void _subscribeOnNavigationStream(NavigationListener<NS> listener) {
     if (listener != null) {
-      final navigate = (state) => listener(context, state);
+      final navigate = (NS state) => listener(context, state);
       if (_subscription == null) {
-        _subscription = _navigationStream.listen(navigate);
+        _subscription = _bloc.listenNavigation(navigate);
       } else {
         _subscription.onData(navigate);
       }
     }
   }
-
-  Stream<NS> get _navigationStream => _bloc._navigationController.stream;
 
   @override
   Widget build(BuildContext context) {
@@ -159,24 +107,21 @@ class BlocBuilder<B extends Bloc, US> extends StatefulWidget {
 }
 
 class _BlocBuilderState<B extends Bloc, US> extends State<BlocBuilder<B, US>> {
-  _StateHolder<US> _stateHolder;
+
+  StreamSubscription<US> _subscription;
+  US _data;
+  B _bloc;
 
   @override
   void initState() {
     super.initState();
-    final bloc = widget.bloc ?? Provider.of<B>(context);
-    _stateHolder = bloc?._stateHolders[US];
+    _bloc = widget.bloc ?? Provider.of<B>(context);
+    _data = _bloc?.initialState<US>();
+    _subscribe();
   }
 
   @override
-  Widget build(BuildContext context) {
-    final stream = _stateHolder.controller.stream;
-    return StreamBuilder<US>(
-      initialData: _stateHolder.initialState,
-      stream: stream.isBroadcast ? stream.asBroadcastStream() : stream,
-      builder: (context, snapshot) => widget.builder(context, snapshot.data),
-    );
-  }
+  Widget build(BuildContext context) => widget.builder(context, _data);
 
   @override
   void didUpdateWidget(BlocBuilder<B, US> oldWidget) {
@@ -184,8 +129,30 @@ class _BlocBuilderState<B extends Bloc, US> extends State<BlocBuilder<B, US>> {
     final oldBloc = oldWidget.bloc ?? Provider.of<B>(context);
     final currentBloc = widget.bloc ?? oldBloc;
     if (oldBloc != currentBloc) {
-      final bloc = widget.bloc ?? Provider.of<B>(context);
-      _stateHolder = bloc?._stateHolders[US];
+      _bloc = widget.bloc ?? Provider.of<B>(context);
+      if (_subscription != null) {
+        _unsubscribe();
+      }
+      _subscribe();
     }
+  }
+
+  void _subscribe() {
+    _subscription = _bloc?.listenState<US>((US data) {
+      setState(() {
+        _data = data;
+      });
+    });
+  }
+
+  void _unsubscribe() {
+    _subscription?.cancel();
+    _subscription = null;
+  }
+
+  @override
+  void dispose() {
+    _unsubscribe();
+    super.dispose();
   }
 }
