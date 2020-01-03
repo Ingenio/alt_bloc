@@ -2,18 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-extension _BlocStreamController<T> on StreamController<T> {
-
-  bool addIfNotClosed(T event) {
-    if (!isClosed) {
-      sink.add(event);
-      return true;
-    }
-    return false;
-  }
-
-}
-
 /// Business Logic Component
 abstract class Bloc<NS> {
   final _stateHolders = <Type, _StateHolder<dynamic>>{};
@@ -62,4 +50,16 @@ class _StateHolder<US> {
   final US initialState;
 
   _StateHolder(this.controller, {this.initialState});
+}
+
+extension _BlocStreamController<T> on StreamController<T> {
+
+  bool addIfNotClosed(T event) {
+    if (!isClosed) {
+      sink.add(event);
+      return true;
+    }
+    return false;
+  }
+
 }
