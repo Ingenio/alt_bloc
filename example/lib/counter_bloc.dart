@@ -6,7 +6,7 @@ class CounterBloc extends Bloc {
   var _counter = 0;
 
   CounterBloc() {
-    registerState<num>(initialState: 10);
+    registerState<int>(initialState: 10);
     registerState<bool>(initialState: false);
   }
 
@@ -15,7 +15,7 @@ class CounterBloc extends Bloc {
     // delay simulation
     Future.delayed(const Duration(milliseconds: 500), () {
       addState<bool>(false);
-      addState<num>(++_counter);
+      addState<int>(++_counter);
       if ((_counter % 10) == 0) {
         addNavigation(arguments: _counter);
       }

@@ -25,7 +25,7 @@ class CounterLayout extends StatelessWidget {
                 Text(
                   'You have pushed the button this many times:',
                 ),
-                BlocBuilder<CounterBloc, num>(
+                BlocBuilder<CounterBloc, int>(
                     builder: (_, status) {
                       return Text(
                         '${status ?? 0}',
