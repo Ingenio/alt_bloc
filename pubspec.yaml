@@ -1,8 +1,8 @@
 name: alt_bloc
-description: Alternative solution of BLoC design pattern
+description: Library for implementing the BLoC design pattern
 version: 0.0.1
 author: Yegor Logachev
-homepage:
+homepage: https://github.com/dashdevs/alt_bloc
 
 environment:
   sdk: ">=2.6.0 <3.0.0"
