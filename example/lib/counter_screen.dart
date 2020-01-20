@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'counter_bloc.dart';
 import 'counter_layout.dart';
 
-/// entity that encapsulate mapping Layout(UI), Bloc(Business Logic), listener(Navigation Handler) on BlocProvider
+/// entity that encapsulate mapping Layout(UI), Bloc(Business Logic), router(Navigation Handler) on BlocProvider
 class CounterScreen extends StatelessWidget {
 
   @override
