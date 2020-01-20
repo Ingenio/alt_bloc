@@ -9,19 +9,17 @@ class CounterScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<CounterBloc, int>(
-      bloc: () => CounterBloc(),
+    return BlocProvider<CounterBloc>(
+      create: () => CounterBloc(),
       child: CounterLayout(title: 'Bloc Demo Home Page'),
-      listener: onNavigation,
-    );
-  }
-
-  void onNavigation(context, state) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text('Congratulations! You clicked $state times'),
-      ),
+      router: (context, name, args) {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: Text('Congratulations! You clicked $args times'),
+          ),
+        );
+      },
     );
   }
 }
