@@ -16,22 +16,33 @@ class CounterLayout extends StatelessWidget {
       appBar: AppBar(
         title: Text(title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
+      body: Stack(
+        children: <Widget>[
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text(
+                  'You have pushed the button this many times:',
+                ),
+                BlocBuilder<CounterBloc, num>(
+                    builder: (_, status) {
+                      return Text(
+                        '${status ?? 0}',
+                        style: Theme.of(context).textTheme.display1,
+                      );
+                    }),
+              ],
             ),
-            BlocBuilder<CounterBloc, num>(
-                builder: (_, status) {
-                  return Text(
-                    '${status ?? 0}',
-                    style: Theme.of(context).textTheme.display1,
-                  );
-                }),
-          ],
-        ),
+          ),
+          Center(
+            child: BlocBuilder<CounterBloc, bool>(
+              builder: (_, inProgress) {
+                return inProgress ? CircularProgressIndicator() : Container();
+              }
+            ),
+          )
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: Provider.of<CounterBloc>(context).increment,

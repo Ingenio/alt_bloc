@@ -1,13 +1,15 @@
 import 'dart:async';
 
+import 'package:alt_bloc/src/route_state.dart';
 import 'package:flutter/foundation.dart';
 
 /// Business Logic Component
-abstract class Bloc<NS> {
+abstract class Bloc {
   final _stateHolders = <Type, _StateHolder<dynamic>>{};
-  final _navigationController = StreamController<NS>();
+  final _navigationController = StreamController<RouteState>();
 
-  bool addNavigation(NS state) => _navigationController.addIfNotClosed(state);
+  bool addNavigation({String routeName, dynamic arguments}) => _navigationController.addIfNotClosed(RouteState
+    (name: routeName, args: arguments));
 
   void dispose() {
     _stateHolders.forEach((_, holder) => holder.controller.close());
@@ -39,7 +41,7 @@ abstract class Bloc<NS> {
     return stream.listen(onData);
   }
 
-  StreamSubscription<NS> listenNavigation(void onData(NS state)) {
+  StreamSubscription<RouteState> listenNavigation(void onData(RouteState state)) {
     return _navigationController.stream.listen(onData);
   }
 }

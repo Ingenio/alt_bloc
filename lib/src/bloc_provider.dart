@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:alt_bloc/src/route_state.dart';
+import 'package:alt_bloc/src/router.dart';
 import 'package:flutter/widgets.dart';
 import 'bloc.dart';
 
@@ -28,50 +30,48 @@ class Provider<B extends Bloc> extends InheritedWidget {
   }
 }
 
-typedef NavigationListener<NS> = void Function(BuildContext, NS);
-
 /// Widget that responsible for creation of Bloc, should be placed in root of UI widgets tree.
-class BlocProvider<B extends Bloc<NS>, NS> extends StatefulWidget {
+class BlocProvider<B extends Bloc> extends StatefulWidget {
   const BlocProvider({
     Key key,
     @required this.child,
-    @required this.bloc,
-    this.listener,
+    @required this.create,
+    this.router,
     this.shouldNotify,
   }) : super(key: key);
 
-  final B Function() bloc;
+  final B Function() create;
   final Widget child;
-  final NavigationListener<NS> listener;
+  final Router router;
   final UpdateShouldNotify<B> shouldNotify;
 
   @override
-  _BlocProviderState<B, NS> createState() => _BlocProviderState<B, NS>();
+  _BlocProviderState<B> createState() => _BlocProviderState<B>();
 }
 
-class _BlocProviderState<B extends Bloc<NS>, NS> extends State<BlocProvider<B, NS>> {
+class _BlocProviderState<B extends Bloc> extends State<BlocProvider<B>> {
   B _bloc;
-  StreamSubscription<NS> _subscription;
+  StreamSubscription<RouteState> _subscription;
 
   @override
   void initState() {
-    if (widget.bloc != null) {
-      _bloc ??= widget.bloc();
+    if (widget.create != null) {
+      _bloc ??= widget.create();
     }
     super.initState();
-    _subscribeOnNavigationStream(widget.listener);
+    _subscribeOnNavigationStream(widget.router);
   }
 
   @override
-  void didUpdateWidget(BlocProvider<B, NS> oldWidget) {
+  void didUpdateWidget(BlocProvider<B> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _subscribeOnNavigationStream(widget.listener);
+    _subscribeOnNavigationStream(widget.router);
   }
 
 
-  void _subscribeOnNavigationStream(NavigationListener<NS> listener) {
-    if (listener != null) {
-      final navigate = (NS state) => listener(context, state);
+  void _subscribeOnNavigationStream(Router router) {
+    if (router != null) {
+      final navigate = (RouteState state) => router(context, state.name, state.args);
       if (_subscription == null) {
         _subscription = _bloc.listenNavigation(navigate);
       } else {
