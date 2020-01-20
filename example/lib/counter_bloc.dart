@@ -1,7 +1,7 @@
 
 import 'package:alt_bloc/alt_bloc.dart';
 
-class CounterBloc extends Bloc<int> {
+class CounterBloc extends Bloc {
 
   var _counter = 0;
 
@@ -12,7 +12,7 @@ class CounterBloc extends Bloc<int> {
   void increment() {
     addState<num>(++_counter);
     if ((_counter % 10) == 0) {
-      addNavigation(_counter);
+      addNavigation(arguments: _counter);
     }
   }
 }
