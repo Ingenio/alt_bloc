@@ -127,9 +127,9 @@ class CounterLayout extends StatelessWidget {
                   'You have pushed the button this many times:',
                 ),
                 BlocBuilder<CounterBloc, int>(
-                    builder: (_, status) {
+                    builder: (_, count) {
                       return Text(
-                        '${status ?? 0}',
+                        '$count',
                         style: Theme.of(context).textTheme.display1,
                       );
                     }),
