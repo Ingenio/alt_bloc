@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 abstract class Bloc {
 
   final _stateHolders = <Type, _StateHolder<dynamic>>{};
-  final _navigationController = StreamController<RouteState>();
+  final _navigationController = StreamController<RouteState>.broadcast();
 
   bool addNavigation({String routeName, dynamic arguments}) {
     return _navigationController.addIfNotClosed(RouteState(name: routeName, args: arguments));
@@ -45,7 +45,7 @@ abstract class Bloc {
   }
 
   StreamSubscription<RouteState> listenNavigation(void onData(RouteState state)) {
-    return _navigationController.stream.listen(onData);
+    return _navigationController.stream.asBroadcastStream().listen(onData);
   }
 }
 
