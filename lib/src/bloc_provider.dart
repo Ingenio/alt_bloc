@@ -11,7 +11,8 @@ typedef UpdateShouldNotify<T> = bool Function(T previous, T current);
 /// InheritedWidget that responsible for providing Bloc instance.
 class Provider<B extends Bloc> extends InheritedWidget {
   const Provider._({Key key, @required B bloc, Widget child, this.shouldNotify})
-      : bloc = bloc,
+      : assert(bloc != null),
+        bloc = bloc,
         super(key: key, child: child);
 
   final B bloc;
@@ -38,7 +39,9 @@ class BlocProvider<B extends Bloc> extends StatefulWidget {
     @required this.create,
     this.router,
     this.shouldNotify,
-  }) : super(key: key);
+  })  : assert(child != null),
+        assert(create != null),
+        super(key: key);
 
   final B Function() create;
   final Widget child;
@@ -68,7 +71,6 @@ class _BlocProviderState<B extends Bloc> extends State<BlocProvider<B>> {
     _subscribeOnNavigationStream(widget.router);
   }
 
-
   void _subscribeOnNavigationStream(Router router) {
     if (router != null) {
       final navigate = (RouteState state) => router(context, state.name, state.args);
@@ -82,7 +84,11 @@ class _BlocProviderState<B extends Bloc> extends State<BlocProvider<B>> {
 
   @override
   Widget build(BuildContext context) {
-    return Provider._(bloc: _bloc, child: widget.child, shouldNotify: widget.shouldNotify,);
+    return Provider._(
+      bloc: _bloc,
+      child: widget.child,
+      shouldNotify: widget.shouldNotify,
+    );
   }
 
   @override
