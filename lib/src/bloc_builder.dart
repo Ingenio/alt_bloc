@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:alt_bloc/src/bloc_holder.dart';
+import 'package:alt_bloc/src/precondition.dart';
 import 'package:flutter/widgets.dart';
 
 import 'bloc.dart';
@@ -11,8 +12,9 @@ typedef BlocWidgetBuilder<S> = Widget Function(BuildContext context, S state);
 class BlocBuilder<B extends Bloc, S> extends BlocHolder<B> {
 
   final BlocWidgetBuilder<S> builder;
+  final Precondition<S> precondition;
 
-  const BlocBuilder({Key key, B bloc, @required this.builder}) : super(key: key, bloc: bloc);
+  const BlocBuilder({Key key, B bloc, @required this.builder, this.precondition}) : super(key: key, bloc: bloc);
 
   @override
   State<StatefulWidget> createState() => _BlocBuilderState<B, S>();
@@ -21,17 +23,18 @@ class BlocBuilder<B extends Bloc, S> extends BlocHolder<B> {
 class _BlocBuilderState<B extends Bloc, S> extends BlocHolderState<B, BlocBuilder<B, S>> {
 
   StreamSubscription<S> _subscription;
-  S _data;
+  S _state;
+  S _previousState;
 
   @override
   void initState() {
     super.initState();
-    _data = bloc?.initialState<S>();
+    _state = bloc?.initialState<S>();
     _subscribe();
   }
 
   @override
-  Widget build(BuildContext context) => widget.builder(context, _data);
+  Widget build(BuildContext context) => widget.builder(context, _state);
 
   @override
   void onBlocChanged(B bloc) {
@@ -41,10 +44,13 @@ class _BlocBuilderState<B extends Bloc, S> extends BlocHolderState<B, BlocBuilde
   }
 
   void _subscribe() {
-    _subscription = bloc?.listenState<S>((S data) {
-      setState(() {
-        _data = data;
-      });
+    _subscription = bloc?.listenState<S>((S state) {
+      if (widget.precondition?.call(_previousState, state) ?? true) {
+        setState(() {
+          _previousState = _state;
+          _state = state;
+        });
+      }
     });
   }
 
