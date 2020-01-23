@@ -1,4 +1,3 @@
-import 'package:alt_bloc/src/route_state.dart';
 import 'package:flutter/widgets.dart';
 
 import 'bloc.dart';
@@ -16,7 +15,7 @@ class RouteListener<B extends Bloc> extends BlocHolder<B> {
 
   final Router router;
   final Widget child;
-  final Precondition<RouteState> precondition;
+  final Precondition<RouteSettings> precondition;
 
   @override
   State<StatefulWidget> createState() => _RouteListenerState<B>();

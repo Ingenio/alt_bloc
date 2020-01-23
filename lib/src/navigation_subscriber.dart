@@ -3,18 +3,17 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 
 import 'bloc.dart';
-import 'route_state.dart';
 import 'router.dart';
 
 mixin NavigationSubscriber<B extends Bloc, T extends StatefulWidget> on State<T> {
 
 
 //  todo how to add precondition here???
-  StreamSubscription<RouteState> subscription;
+  StreamSubscription<RouteSettings> subscription;
 
   void subscribe(Router router, B bloc) {
     if (router != null) {
-      final navigateTo = (RouteState state) => router(context, state.name, state.args);
+      final navigateTo = (RouteSettings settings) => router(context, settings.name, settings.arguments);
       if (subscription == null) {
         subscription = bloc.listenNavigation(navigateTo);
       } else {
