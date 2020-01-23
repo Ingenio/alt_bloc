@@ -36,9 +36,7 @@ class _BlocBuilderState<B extends Bloc, S> extends BlocHolderState<B, BlocBuilde
   @override
   void onBlocChanged(B bloc) {
     super.onBlocChanged(bloc);
-    if (_subscription != null) {
-      _unsubscribe();
-    }
+    _unsubscribe();
     _subscribe();
   }
 

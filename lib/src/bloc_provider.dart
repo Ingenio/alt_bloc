@@ -59,13 +59,13 @@ class _BlocProviderState<B extends Bloc> extends State<BlocProvider<B>> with Nav
   void initState() {
     _bloc ??= widget.create();
     super.initState();
-    subscribeOnBlocNavigation(widget.router, _bloc);
+    subscribe(widget.router, _bloc);
   }
 
   @override
   void didUpdateWidget(BlocProvider<B> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    subscribeOnBlocNavigation(widget.router, _bloc);
+    subscribe(widget.router, _bloc);
   }
 
   @override
@@ -79,7 +79,7 @@ class _BlocProviderState<B extends Bloc> extends State<BlocProvider<B>> with Nav
 
   @override
   void dispose() {
-    unsubscribeFromBlocNavigation();
+    unsubscribe();
     _bloc?.dispose();
     super.dispose();
   }

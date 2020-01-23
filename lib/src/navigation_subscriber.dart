@@ -10,7 +10,7 @@ mixin NavigationSubscriber<B extends Bloc, T extends StatefulWidget> on State<T>
 
   StreamSubscription<RouteState> subscription;
 
-  void subscribeOnBlocNavigation(Router router, B bloc) {
+  void subscribe(Router router, B bloc) {
     if (router != null) {
       final navigateTo = (RouteState state) => router(context, state.name, state.args);
       if (subscription == null) {
@@ -21,14 +21,14 @@ mixin NavigationSubscriber<B extends Bloc, T extends StatefulWidget> on State<T>
     }
   }
 
-  void unsubscribeFromBlocNavigation() {
+  void unsubscribe() {
     subscription?.cancel();
     subscription = null;
   }
 
   @override
   void dispose() {
-    unsubscribeFromBlocNavigation();
+    unsubscribe();
     super.dispose();
   }
 }

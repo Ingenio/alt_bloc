@@ -26,16 +26,14 @@ class _RouteListenerState<B extends Bloc> extends BlocHolderState<B, RouteListen
   @override
   void initState() {
     super.initState();
-    subscribeOnBlocNavigation(widget.router, bloc);
+    subscribe(widget.router, bloc);
   }
 
   @override
-  void onBlocChanged(B bloc) {
+  Future<void> onBlocChanged(B bloc) async {
     super.onBlocChanged(bloc);
-    if (subscription != null) {
-      unsubscribeFromBlocNavigation();
-    }
-    subscribeOnBlocNavigation(widget.router, bloc);
+    unsubscribe();
+    subscribe(widget.router, bloc);
   }
 
   @override
