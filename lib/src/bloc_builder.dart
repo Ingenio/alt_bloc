@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:alt_bloc/src/bloc_holder.dart';
-import 'package:alt_bloc/src/precondition.dart';
 import 'package:flutter/widgets.dart';
 
 import 'bloc.dart';
+import 'bloc_holder.dart';
+import 'precondition.dart';
 
 typedef BlocWidgetBuilder<S> = Widget Function(BuildContext context, S state);
 

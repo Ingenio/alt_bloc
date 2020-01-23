@@ -8,6 +8,8 @@ import 'router.dart';
 
 mixin NavigationSubscriber<B extends Bloc, T extends StatefulWidget> on State<T> {
 
+
+//  todo how to add precondition here???
   StreamSubscription<RouteState> subscription;
 
   void subscribe(Router router, B bloc) {

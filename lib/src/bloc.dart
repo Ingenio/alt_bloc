@@ -1,7 +1,9 @@
 import 'dart:async';
 
-import 'package:alt_bloc/src/route_state.dart';
+
 import 'package:flutter/foundation.dart';
+
+import 'route_state.dart';
 
 /// Business Logic Component
 abstract class Bloc {

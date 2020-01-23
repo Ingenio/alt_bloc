@@ -1,7 +1,7 @@
-import 'package:alt_bloc/src/router.dart';
 import 'package:flutter/widgets.dart';
 import 'bloc.dart';
 import 'navigation_subscriber.dart';
+import 'router.dart';
 
 // todo write tests
 
