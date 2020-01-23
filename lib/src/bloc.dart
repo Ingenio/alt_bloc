@@ -5,11 +5,14 @@ import 'package:flutter/foundation.dart';
 
 /// Business Logic Component
 abstract class Bloc {
-  final _stateHolders = <Type, _StateHolder<dynamic>>{};
-  final _navigationController = StreamController<RouteState>();
 
-  bool addNavigation({String routeName, dynamic arguments}) => _navigationController.addIfNotClosed(RouteState
-    (name: routeName, args: arguments));
+  final _stateHolders = <Type, _StateHolder<dynamic>>{};
+  final _navigationController = StreamController<RouteState>.broadcast();
+
+  bool addNavigation({String routeName, dynamic arguments}) {
+    return _navigationController.addIfNotClosed(RouteState(name: routeName, args: arguments));
+  }
+
 
   void dispose() {
     _stateHolders.forEach((_, holder) => holder.controller.close());
@@ -17,39 +20,39 @@ abstract class Bloc {
     _navigationController.close();
   }
 
-  void registerState<US>({bool isBroadcast = false, US initialState}) {
-    if (_stateHolders.containsKey(US)) {
-      throw FlutterError('UI state with type $US already has been registered');
+  void registerState<S>({bool isBroadcast = false, S initialState}) {
+    if (_stateHolders.containsKey(S)) {
+      throw FlutterError('State with type $S already has been registered');
     } else {
-      final stateHolder = _StateHolder<US>(isBroadcast ? StreamController<US>.broadcast() : StreamController<US>(),
+      final stateHolder = _StateHolder<S>(isBroadcast ? StreamController<S>.broadcast() : StreamController<S>(),
           initialState: initialState);
-      _stateHolders[US] = stateHolder;
+      _stateHolders[S] = stateHolder;
     }
   }
 
-  bool addState<US>(US uiState) {
-    US state = uiState;
-    return _stateHolders[US].controller.addIfNotClosed(state);
+  bool addState<S>(S uiState) {
+    S state = uiState;
+    return _stateHolders[S].controller.addIfNotClosed(state);
   }
 
-  US initialState<US>() {
-    return _stateHolders[US].initialState;
+  S initialState<S>() {
+    return _stateHolders[S].initialState;
   }
 
-  StreamSubscription<US> listenState<US>(void onData(US state)) {
-    Stream<US> stream = _stateHolders[US].controller.stream;
+  StreamSubscription<S> listenState<S>(void onData(S state)) {
+    Stream<S> stream = _stateHolders[S].controller.stream;
     return stream.listen(onData);
   }
 
   StreamSubscription<RouteState> listenNavigation(void onData(RouteState state)) {
-    return _navigationController.stream.listen(onData);
+    return _navigationController.stream.asBroadcastStream().listen(onData);
   }
 }
 
-class _StateHolder<US> {
-  final StreamController<US> controller;
+class _StateHolder<S> {
+  final StreamController<S> controller;
 
-  final US initialState;
+  final S initialState;
 
   _StateHolder(this.controller, {this.initialState});
 }

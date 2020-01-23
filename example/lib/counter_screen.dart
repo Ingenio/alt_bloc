@@ -11,7 +11,6 @@ class CounterScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<CounterBloc>(
       create: () => CounterBloc(),
-      child: CounterLayout(title: 'Bloc Demo Home Page'),
       router: (context, name, args) {
         showDialog(
           context: context,
@@ -20,6 +19,17 @@ class CounterScreen extends StatelessWidget {
           ),
         );
       },
+      child: RouteListener<CounterBloc>(
+        child: CounterLayout(title: 'Bloc Demo Home Page'),
+        router: (context, name, args) {
+          showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: Text('Congratulations! You clicked $args times'),
+            ),
+          );
+        },
+      ),
     );
   }
 }

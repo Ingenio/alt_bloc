@@ -1,34 +1,32 @@
 import 'dart:async';
 
+import 'package:alt_bloc/src/bloc_holder.dart';
 import 'package:flutter/widgets.dart';
 
 import 'bloc.dart';
-import 'bloc_provider.dart';
 
-typedef BlocWidgetBuilder<US> = Widget Function(BuildContext context, US state);
+typedef BlocWidgetBuilder<S> = Widget Function(BuildContext context, S state);
 
 /// Bloc Builder that observe Bloc by subscribing on StreamController.
-class BlocBuilder<B extends Bloc, US> extends StatefulWidget {
-  final BlocWidgetBuilder<US> builder;
-  final B bloc;
+class BlocBuilder<B extends Bloc, S> extends BlocHolder<B> {
 
-  const BlocBuilder({this.bloc, @required this.builder});
+  final BlocWidgetBuilder<S> builder;
+
+  const BlocBuilder({Key key, B bloc, @required this.builder}) : super(key: key, bloc: bloc);
 
   @override
-  State<StatefulWidget> createState() => _BlocBuilderState<B, US>();
+  State<StatefulWidget> createState() => _BlocBuilderState<B, S>();
 }
 
-class _BlocBuilderState<B extends Bloc, US> extends State<BlocBuilder<B, US>> {
+class _BlocBuilderState<B extends Bloc, S> extends BlocHolderState<B, BlocBuilder<B, S>> {
 
-  StreamSubscription<US> _subscription;
-  US _data;
-  B _bloc;
+  StreamSubscription<S> _subscription;
+  S _data;
 
   @override
   void initState() {
     super.initState();
-    _bloc = widget.bloc ?? Provider.of<B>(context);
-    _data = _bloc?.initialState<US>();
+    _data = bloc?.initialState<S>();
     _subscribe();
   }
 
@@ -36,21 +34,14 @@ class _BlocBuilderState<B extends Bloc, US> extends State<BlocBuilder<B, US>> {
   Widget build(BuildContext context) => widget.builder(context, _data);
 
   @override
-  void didUpdateWidget(BlocBuilder<B, US> oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final oldBloc = oldWidget.bloc ?? Provider.of<B>(context);
-    final currentBloc = widget.bloc ?? oldBloc;
-    if (oldBloc != currentBloc) {
-      _bloc = widget.bloc ?? Provider.of<B>(context);
-      if (_subscription != null) {
-        _unsubscribe();
-      }
-      _subscribe();
-    }
+  void onBlocChanged(B bloc) {
+    super.onBlocChanged(bloc);
+    _unsubscribe();
+    _subscribe();
   }
 
   void _subscribe() {
-    _subscription = _bloc?.listenState<US>((US data) {
+    _subscription = bloc?.listenState<S>((S data) {
       setState(() {
         _data = data;
       });
