@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:alt_bloc/src/precondition.dart';
 import 'package:flutter/widgets.dart';
 
 import 'bloc.dart';
@@ -7,13 +8,19 @@ import 'router.dart';
 
 mixin NavigationSubscriber<B extends Bloc, T extends StatefulWidget> on State<T> {
 
-
-//  todo how to add precondition here???
   StreamSubscription<RouteSettings> subscription;
+  Precondition<RouteSettings> get precondition;
+  B get bloc;
+  Router get router;
+  RouteSettings _previousSettings;
 
-  void subscribe(Router router, B bloc) {
+  void subscribe() {
     if (router != null) {
-      final navigateTo = (RouteSettings settings) => router(context, settings.name, settings.arguments);
+      final navigateTo = (RouteSettings settings) {
+        if (precondition?.call(_previousSettings, settings) ?? true) {
+          router(context, settings.name, settings.arguments);
+        }
+      };
       if (subscription == null) {
         subscription = bloc.listenNavigation(navigateTo);
       } else {
