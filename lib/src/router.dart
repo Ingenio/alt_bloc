@@ -23,8 +23,6 @@ class RouteListener<B extends Bloc> extends BlocHolder<B> {
 class _RouteListenerState<B extends Bloc> extends BlocHolderState<B, RouteListener<B>>
     with NavigationSubscriber<B, RouteListener<B>>{
 
-  Router get router => widget.router;
-
   @override
   void initState() {
     super.initState();
