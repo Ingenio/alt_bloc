@@ -26,6 +26,7 @@ class CounterLayout extends StatelessWidget {
                   'You have pushed the button this many times:',
                 ),
                 BlocBuilder<CounterBloc, int>(
+                    precondition: (prevCount, count) => count % 2 == 0,
                     builder: (_, count) {
                       return Text(
                         '$count',
@@ -37,15 +38,17 @@ class CounterLayout extends StatelessWidget {
           ),
           Center(
             child: BlocBuilder<CounterBloc, bool>(
-              builder: (_, inProgress) {
-                return inProgress ? CircularProgressIndicator() : Container();
-              }
+                builder: (_, inProgress) {
+                  return inProgress ? CircularProgressIndicator() : Container();
+                }
             ),
           )
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: Provider.of<CounterBloc>(context).increment,
+        onPressed: Provider
+            .of<CounterBloc>(context)
+            .increment,
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ),

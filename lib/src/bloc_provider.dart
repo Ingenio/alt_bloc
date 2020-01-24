@@ -1,7 +1,8 @@
-import 'package:alt_bloc/src/router.dart';
 import 'package:flutter/widgets.dart';
 import 'bloc.dart';
 import 'navigation_subscriber.dart';
+import 'precondition.dart';
+import 'router.dart';
 
 // todo write tests
 
@@ -38,6 +39,7 @@ class BlocProvider<B extends Bloc> extends StatefulWidget {
     @required this.create,
     this.router,
     this.shouldNotify,
+    this.routerPrecondition,
   })  : assert(child != null),
         assert(create != null),
         super(key: key);
@@ -45,6 +47,7 @@ class BlocProvider<B extends Bloc> extends StatefulWidget {
   final B Function() create;
   final Widget child;
   final Router router;
+  final Precondition<RouteSettings> routerPrecondition;
   final UpdateShouldNotify<B> shouldNotify;
 
   @override
@@ -59,13 +62,13 @@ class _BlocProviderState<B extends Bloc> extends State<BlocProvider<B>> with Nav
   void initState() {
     _bloc ??= widget.create();
     super.initState();
-    subscribe(widget.router, _bloc);
+    subscribe();
   }
 
   @override
   void didUpdateWidget(BlocProvider<B> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    subscribe(widget.router, _bloc);
+    subscribe();
   }
 
   @override
@@ -83,4 +86,13 @@ class _BlocProviderState<B extends Bloc> extends State<BlocProvider<B>> with Nav
     _bloc?.dispose();
     super.dispose();
   }
+
+  @override
+  get precondition => widget.routerPrecondition;
+
+  @override
+  B get bloc => _bloc;
+
+  @override
+  get router => widget.router;
 }

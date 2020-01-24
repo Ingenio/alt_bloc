@@ -1,18 +1,28 @@
 import 'dart:async';
 
+import 'package:alt_bloc/src/precondition.dart';
 import 'package:flutter/widgets.dart';
 
 import 'bloc.dart';
-import 'route_state.dart';
 import 'router.dart';
 
 mixin NavigationSubscriber<B extends Bloc, T extends StatefulWidget> on State<T> {
 
-  StreamSubscription<RouteState> subscription;
+  StreamSubscription<RouteSettings> subscription;
+  Precondition<RouteSettings> get precondition;
+  B get bloc;
+  Router get router;
+  var _previousSettings = const RouteSettings();
 
-  void subscribe(Router router, B bloc) {
+  void subscribe() {
     if (router != null) {
-      final navigateTo = (RouteState state) => router(context, state.name, state.args);
+      final navigateTo = (RouteSettings settings) {
+        if (precondition?.call(_previousSettings, settings) ?? true) {
+          router(context, settings.name, settings.arguments);
+          _previousSettings = settings;
+        }
+
+      };
       if (subscription == null) {
         subscription = bloc.listenNavigation(navigateTo);
       } else {

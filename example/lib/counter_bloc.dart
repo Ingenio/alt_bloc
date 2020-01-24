@@ -16,9 +16,7 @@ class CounterBloc extends Bloc {
     Future.delayed(const Duration(milliseconds: 500), () {
       addState<bool>(false);
       addState<int>(++_counter);
-      if ((_counter % 10) == 0) {
-        addNavigation(arguments: _counter);
-      }
+      addNavigation(arguments: _counter);
     });
   }
 }

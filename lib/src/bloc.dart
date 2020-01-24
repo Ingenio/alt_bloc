@@ -1,16 +1,17 @@
 import 'dart:async';
 
-import 'package:alt_bloc/src/route_state.dart';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 /// Business Logic Component
 abstract class Bloc {
 
   final _stateHolders = <Type, _StateHolder<dynamic>>{};
-  final _navigationController = StreamController<RouteState>.broadcast();
+  final _navigationController = StreamController<RouteSettings>.broadcast();
 
   bool addNavigation({String routeName, dynamic arguments}) {
-    return _navigationController.addIfNotClosed(RouteState(name: routeName, args: arguments));
+    return _navigationController.addIfNotClosed(RouteSettings(name: routeName, arguments: arguments));
   }
 
 
@@ -44,7 +45,7 @@ abstract class Bloc {
     return stream.listen(onData);
   }
 
-  StreamSubscription<RouteState> listenNavigation(void onData(RouteState state)) {
+  StreamSubscription<RouteSettings> listenNavigation(void onData(RouteSettings state)) {
     return _navigationController.stream.asBroadcastStream().listen(onData);
   }
 }
