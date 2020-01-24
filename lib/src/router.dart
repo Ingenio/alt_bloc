@@ -9,7 +9,7 @@ import 'precondition.dart';
 typedef Router = Function(BuildContext context, String name, dynamic args);
 
 class RouteListener<B extends Bloc> extends BlocHolder<B> {
-  RouteListener({Key key, @required this.child, this.router, B bloc, this.precondition})
+  const RouteListener({Key key, @required this.child, this.router, B bloc, this.precondition})
       : assert(child != null),
         super(key: key, bloc: bloc);
 

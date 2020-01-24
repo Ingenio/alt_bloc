@@ -12,14 +12,16 @@ mixin NavigationSubscriber<B extends Bloc, T extends StatefulWidget> on State<T>
   Precondition<RouteSettings> get precondition;
   B get bloc;
   Router get router;
-  RouteSettings _previousSettings;
+  var _previousSettings = const RouteSettings();
 
   void subscribe() {
     if (router != null) {
       final navigateTo = (RouteSettings settings) {
         if (precondition?.call(_previousSettings, settings) ?? true) {
           router(context, settings.name, settings.arguments);
+          _previousSettings = settings;
         }
+
       };
       if (subscription == null) {
         subscription = bloc.listenNavigation(navigateTo);
