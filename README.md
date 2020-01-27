@@ -1,6 +1,11 @@
 # alt_bloc
-Library for BLoC design pattern implementation. Inspired by [BLoC](https://pub.dev/packages/bloc), [Provider](https://pub.dev/packages/provider) libraries and my own experience of Flutter development.
+Library for BLoC design pattern implementation.
 
+## Authors
+* Yegor Logachev <egor@itomy.ch>
+[DashDevs](https://www.dashdevs.com)
+* Olivier Brand <obrand@ingenio.com>
+[Ingenio, LLC](https://www.ingenio.com)
 ## Intro 
 ### Why we decided to create this solution?
 
