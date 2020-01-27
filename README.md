@@ -1,11 +1,24 @@
 # alt_bloc
 Library for BLoC design pattern implementation. Inspired by [BLoC](https://pub.dev/packages/bloc), [Provider](https://pub.dev/packages/provider) libraries and my own experience of Flutter development.
 
+## Intro 
+### Why we decided to create this solution?
+
+There are many who can say that we are trying to reinvent the wheel, because there already exists a popular solution that implements Bloc design pattern for Dart and Flutter such as [bloc](https://pub.dev/packages/bloc) and [flutter_bloc](https://pub.dev/packages/flutter_bloc). But existing solution contains some issues in design. Issues that we try to solve are:
+
+* [bloc](https://pub.dev/packages/bloc) library designed so that it can handle only one state class and only one event class. As result sometimes developers should create large hierarchies of classes that are inherited from base state or event for each block. The number of events/states classes grows nonlinearly with the number of blocks that leads to events/states hell. **alt_bloc** does not solve this problem completely, but provide possibility to reduces the number of states per Bloc or simplify hierarchy of events/states classes.
+
+* Very hard to create state that will be reused in other Bloc classes in [bloc](https://pub.dev/packages/bloc) library. For example a lot of Bloc classes contains state class that respond for showing progress indicator. Developer should to create own progress state class for each Bloc or build in this state class to hierarchy of states in this situation. First case leads to code duplication, second leads to complicating hierarchy of states. 
+
+* Third reason more presonal. [bloc](https://pub.dev/packages/bloc) and [flutter_bloc](https://pub.dev/packages/flutter_bloc) libraries contains dependencies on libraries and packages that we don't use in development such as rxdart and provider. As result this dependencies affects the build time and project size.
+
+P.S. We respect the authors and developers of [bloc](https://pub.dev/packages/bloc) and [flutter_bloc](https://pub.dev/packages/flutter_bloc) libraries and do not try to somehow descredit them. All that was described above is an attempt to most objectively describe the current problems of [bloc](https://pub.dev/packages/bloc) and [flutter_bloc](https://pub.dev/packages/flutter_bloc) libraries, and explain the reasons for creating this solution.
+
 ## Main Features
 - Public interface of **alt_bloc** similar to interface of popular libraries like **Provider** and **BLoC**. So you no need spend a lot of time to learn how set up this library.
 - Support multistates. You can create few states per **Bloc** and you don't need create hierarchy of states that inherited from one parent state, especially if this states on different levels of abstraction.
 - Contains separate pipe to handle navigation actions.
-- Lightweight solution. Package pretty small (near 250 lines of code, but can little bit grow in future) and it doesn't contains any third party libraries.
+- Lightweight solution. Package pretty small and it doesn't contains any third party libraries.
 
 ## Components
 #### Bloc
@@ -53,7 +66,12 @@ Library for BLoC design pattern implementation. Inspired by [BLoC](https://pub.d
   * `builder` - required function that build UI based on UI state.
   
 ## Usage
-Simple **Bloc** implementation. To notify **Widget** about changes you should call `addState<T>(T_object);`. If you wanna do some navigation you need to call `addNavigation({String routeName, dynamic arguments})` method.
+
+#### Simple **Bloc** implementation.
+You should register all states that will be used by Bloc with help `registerState<T>()` method. To notify **Widget** about changes you should call `addState<T>(T_object);`. 
+**WARNING!!!** If you will try to call `addState<T>()` method before `registerState<T>()` error will occured.
+
+If you wanna send some navigation event, you need to call `addNavigation({String routeName, dynamic arguments})` method.
 
 ```dart
 class CounterBloc extends Bloc {
@@ -79,7 +97,8 @@ class CounterBloc extends Bloc {
 }
 ```
 
-**Bloc** creation and navigation handling. `create` function responsible for Bloc creation, `router` - for handling navigation.
+#### **BlocProvider**. 
+`create` function responsible for Bloc creation.
 
 ```dart
 class CounterScreen extends StatelessWidget {
@@ -102,7 +121,35 @@ class CounterScreen extends StatelessWidget {
 }
 ```
 
-Providing and observing **Bloc** on UI.
+#### Navigation handling.
+You could handle navigation with help of `router` as it shown in example above. Or you can use **RoutreListener**.
+
+```dart
+class CounterScreen extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<CounterBloc>(
+      create: () => CounterBloc(),
+
+      
+      child: RouteListener<CounterBloc>(
+        child: CounterLayout(title: 'Bloc Demo Home Page'),
+        router: (context, name, args) {
+          showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: Text('Congratulations! You clicked $args times'),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+```
+
+#### Providing and observing **Bloc** on UI.
 
 ```dart
 class CounterLayout extends StatelessWidget {
