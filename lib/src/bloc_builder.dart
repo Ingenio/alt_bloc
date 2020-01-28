@@ -29,7 +29,7 @@ class _BlocBuilderState<B extends Bloc, S> extends BlocHolderState<B, BlocBuilde
   @override
   void initState() {
     super.initState();
-    _state = bloc?.initialState<S>();
+    _state = bloc.initialState<S>();
     _subscribe();
   }
 
@@ -44,7 +44,7 @@ class _BlocBuilderState<B extends Bloc, S> extends BlocHolderState<B, BlocBuilde
   }
 
   void _subscribe() {
-    _subscription = bloc?.listenState<S>((S state) {
+    _subscription = bloc.listenState<S>((S state) {
       if (widget.precondition?.call(_previousState, state) ?? true) {
         setState(() {
           _previousState = _state;

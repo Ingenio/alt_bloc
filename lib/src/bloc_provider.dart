@@ -4,8 +4,6 @@ import 'navigation_subscriber.dart';
 import 'precondition.dart';
 import 'router.dart';
 
-// todo write tests
-
 typedef UpdateShouldNotify<T> = bool Function(T previous, T current);
 
 /// InheritedWidget that responsible for providing Bloc instance.
@@ -52,6 +50,7 @@ class BlocProvider<B extends Bloc> extends StatefulWidget {
 
   @override
   _BlocProviderState<B> createState() => _BlocProviderState<B>();
+
 }
 
 class _BlocProviderState<B extends Bloc> extends State<BlocProvider<B>> with NavigationSubscriber<B, BlocProvider<B>> {
