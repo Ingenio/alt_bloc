@@ -1,9 +1,6 @@
 name: alt_bloc
 description: Library for implementing the BLoC design pattern
 version: 0.1.0
-authors:
-  - Yegor Logachev <egor@itomy.ch>
-  - Olivier Brand <obrand@ingenio.com>
 
 homepage: https://github.com/dashdevs/alt_bloc
 
