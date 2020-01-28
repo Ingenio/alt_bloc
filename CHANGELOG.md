@@ -1,3 +1,4 @@
-## [0.0.1] - TODO: Add release date.
+## [0.1.0] - 2020/01/28
 
-* TODO: Describe initial release.
+* Bloc design pattern solution. Implements Bloc with multi states feature. 
+Implements widgets that improve work with Bloc such as BlocProvider, Provider, BlocBuilder, RouteListener.
