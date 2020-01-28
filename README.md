@@ -7,21 +7,23 @@ Library for BLoC design pattern implementation.
 ## Intro 
 ### Why we decided to create this solution?
 
-There are many who can say that we are trying to reinvent the wheel, because there already exists a popular solution that implements Bloc design pattern for Dart and Flutter such as [bloc](https://pub.dev/packages/bloc) and [flutter_bloc](https://pub.dev/packages/flutter_bloc). But existing solution contains some issues in design. Issues that we try to solve are:
+We are very excited to present our version of the BLoC pattern. Having implemented Flutter apps since its inception, we have built a strong expertise in the framework and kept up to date on all state management related architecture and packages. Our primary goal is to have a one stop shop for a state management system that is simple enough so anybody can understand and quickly adopt it to build powerful applications. One of our goal was also to avoid relying on complex and 'magical' frameworks such as Rx, or having to use multiple franeworks together to achieve the same outcome **alt_bloc** has to offer.
 
-* [bloc](https://pub.dev/packages/bloc) library designed so that it can handle only one state class and only one event class. As result sometimes developers should create large hierarchies of classes that are inherited from base state or event for each block. The number of events/states classes grows nonlinearly with the number of blocks that leads to events/states hell. **alt_bloc** does not solve this problem completely, but provide possibility to reduces the number of states per Bloc or simplify hierarchy of events/states classes.
+Existing solutions such as [bloc](https://pub.dev/packages/bloc) and [flutter_bloc](https://pub.dev/packages/flutter_bloc) have limitations in their design. Some of them are: 
 
-* Very hard to create state that will be reused in other Bloc classes in [bloc](https://pub.dev/packages/bloc) library. For example a lot of Bloc classes contains state class that respond for showing progress indicator. Developer should to create own progress state class for each Bloc or build in this state class to hierarchy of states in this situation. First case leads to code duplication, second leads to complicating hierarchy of states. 
+* [bloc](https://pub.dev/packages/bloc) library is designed in a way that it can only handle a single state and event class. As a result, developers have to create large hierarchies of classes that inherit, for each bloc, from a base state or event class. As a consequence, the number of events/states classes grows nonlinearly with the number of blocks that leads to an event/state hell. **alt_bloc** does not solve this problem completely, but provides the possibility to reduce the number of states per Bloc and simplify the overall hierarchy of events/states classes.
 
-* Third reason more presonal. [bloc](https://pub.dev/packages/bloc) and [flutter_bloc](https://pub.dev/packages/flutter_bloc) libraries contains dependencies on libraries and packages that we don't use in development such as rxdart and provider. As result this dependencies affects the build time and project size.
+* [bloc](https://pub.dev/packages/bloc) library makes it very hard to create reusable state in other Bloc classes. For example a simple UX element such as showing a progress indicator would result in lots of Bloc classes containing a state class. Developers would then have to create their own progress state class for each Bloc or build a hierarchy of states in the state class. The first case leads to lots of code duplication, second leads to a very complicated state hierarchy. 
 
-P.S. We respect the authors and developers of [bloc](https://pub.dev/packages/bloc) and [flutter_bloc](https://pub.dev/packages/flutter_bloc) libraries and do not try to somehow descredit them. All that was described above is an attempt to most objectively describe the current problems of [bloc](https://pub.dev/packages/bloc) and [flutter_bloc](https://pub.dev/packages/flutter_bloc) libraries, and explain the reasons for creating this solution.
+* Finally [bloc](https://pub.dev/packages/bloc) and [flutter_bloc](https://pub.dev/packages/flutter_bloc) libraries contains dependencies on complex libraries and packages such as rxdart and provider. As result this dependencies affects the build time , project size and more importantly increases the complexity and debugging when things do not go as planned.
+
+P.S. We highly respect the authors and developers of [bloc](https://pub.dev/packages/bloc) and [flutter_bloc](https://pub.dev/packages/flutter_bloc) libraries and do not try to somehow descredit them. Our description above is an attempt to objectively describe the current problems of [bloc](https://pub.dev/packages/bloc) and [flutter_bloc](https://pub.dev/packages/flutter_bloc) libraries, and explain the reasons for creating this solution and provide to newcomers to Flutter an easy way to implement BLoC pattern without adding too much complexity.
 
 ## Main Features
-- Public interface of **alt_bloc** similar to interface of popular libraries like **Provider** and **BLoC**. So you no need spend a lot of time to learn how set up this library.
-- Support multistates. You can create few states per **Bloc** and you don't need create hierarchy of states that inherited from one parent state, especially if this states on different levels of abstraction.
-- Contains separate pipe to handle navigation actions.
-- Lightweight solution. Package pretty small and it doesn't contains any third party libraries.
+- Public interfaces of **alt_bloc** are similar to interfaces of popular libraries like **Provider** and **BLoC**. So you do not need to spend lots of time to learn how set up this library.
+- Support multi states. You can create few states per **Bloc** and you don't need to create hierarchy of states that inherited from one parent state, especially if such states are on different levels of abstraction.
+- Provides separate pipes to handle navigation actions.
+- Lightweight solution. The overall package is very small and it doesn't contains any third party libraries.
 
 ## Components
 #### Bloc
