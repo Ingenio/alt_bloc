@@ -22,14 +22,14 @@ abstract class BlocHolderState<B extends Bloc, T extends BlocHolder<B>> extends 
   @override
   void didUpdateWidget(BlocHolder<B> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    didUpdateBloc(oldWidget.bloc ?? Provider.of(context));
+    didUpdateBloc(oldWidget.bloc);
   }
 
   void didUpdateBloc(B oldBloc) {
-    final currentBloc = widget.bloc ?? oldBloc;
-    if (oldBloc != currentBloc) {
-      bloc = Provider.of(context);
-      onBlocChanged(bloc);
+    final currentBloc = widget.bloc ?? Provider.of(context);
+    if (oldBloc != null && oldBloc != currentBloc) {
+      bloc = currentBloc;
+      onBlocChanged(currentBloc);
     }
   }
 
