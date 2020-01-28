@@ -48,6 +48,14 @@ abstract class Bloc {
   StreamSubscription<RouteSettings> listenNavigation(void onData(RouteSettings state)) {
     return _navigationController.stream.asBroadcastStream().listen(onData);
   }
+
+  StreamSubscription<S> mapStreamOnState<S>(Stream<S> source) {
+    return _stateHolders[S].controller.mapStream(source);
+  }
+
+  void mapFutureOnState<S>(Future<S> source) {
+    mapStreamOnState(source.asStream());
+  }
 }
 
 class _StateHolder<S> {
@@ -68,4 +76,25 @@ extension _BlocStreamController<T> on StreamController<T> {
     return false;
   }
 
+  StreamSubscription<T> mapStream(Stream<T> source) {
+    var subscription = source.listen((T data) {
+      print('subscription onData $data');
+      addIfNotClosed(data);
+    });
+    subscription.onDone(() {
+      print('subscription onDone');
+      if (!isClosed) {
+        print('subscription cancel');
+        subscription.cancel();
+        subscription = null;
+      }
+    });
+    subscription.onError((error) {
+      print('subscription onError $error');
+      if (!isClosed) {
+        sink.addError(error);
+      }
+    });
+    return subscription;
+  }
 }
