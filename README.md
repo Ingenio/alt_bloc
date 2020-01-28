@@ -27,22 +27,22 @@ P.S. We highly respect the authors and developers of [bloc](https://pub.dev/pack
 
 ## Components
 #### Bloc
-**Bloc** it is an layer that implements business logic. Bloc accept actions from UI and could notify layout widget about changes in UI state and could initiate navigation actions.
+**Bloc** it is a layer that implements the core business logic. Bloc accepts UI actions from and notifies widget's layout  about changes in UI state to initiate navigation actions.
 
 `abstract class Bloc`
 
-`void addNavigation(String routeName, dynamic arguments)` - notify **BlocProvider** about new navigation state.
+`void addNavigation(String routeName, dynamic arguments)` - notifies **BlocProvider** about new navigation state.
 
 `void registerState<US>({bool isBroadcast = false, US initialState})` - previously than notify UI about changes, developer should register UI state class.
 
-  * `isBroadcast` - optional, should be true if you wanna listen current state more than one place in the same time. 
+  * `isBroadcast` - optional, should be true if you want to listen to current states in many places at the same time. 
 
   * `initialState` - optional, value of UI state that will be returned by default.
 
-`void addState<US>(US uiState)` - notify all BlocBuilder instances that subscribed on this state about new UI state.
+`void addState<US>(US uiState)` - notify all BlocBuilder instances that subscribed to this state about new UI states.
 
 #### BlocProvider
-**BlocProvider** is **StatefulWidget** and it responsible to build UI (child) part, provide ability for this child to obtain **Bloc** and also **BlocProvider** will receive navigation events in **Router**.
+**BlocProvider** is a **StatefulWidget** and is responsible to build the UI (child) part, providing the ability for this child to obtain the **Bloc** and also enable the **BlocProvider** to receive navigation events in **Router**.
 
 `class BlocProvider<B extends Bloc> extends StatefulWidget`
 
