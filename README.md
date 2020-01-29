@@ -27,13 +27,13 @@ P.S. We highly respect the authors and developers of [bloc](https://pub.dev/pack
 
 ## Components
 #### Bloc
-**Bloc** it is a layer that implements the core business logic. Bloc accepts UI actions from and notifies widget's layout  about changes in UI state to initiate navigation actions.
+**Bloc** it is a layer that implements the core business logic. Bloc accepts UI actions from the widget and in return notifies the widget's layout about changes in UI state in order to initiate navigation actions.
 
 `abstract class Bloc`
 
 `void addNavigation(String routeName, dynamic arguments)` - notifies **BlocProvider** about new navigation state.
 
-`void registerState<US>({bool isBroadcast = false, US initialState})` - previously than notify UI about changes, developer should register UI state class.
+`void registerState<US>({bool isBroadcast = false, US initialState})` - must be called before adding states using **addState**.
 
   * `isBroadcast` - optional, should be true if you want to listen to current states in many places at the same time. 
 
@@ -42,41 +42,41 @@ P.S. We highly respect the authors and developers of [bloc](https://pub.dev/pack
 `void addState<US>(US uiState)` - notify all BlocBuilder instances that subscribed to this state about new UI states.
 
 #### BlocProvider
-**BlocProvider** is a **StatefulWidget** and is responsible to build the UI (child) part, providing the ability for this child to obtain the **Bloc** and also enable the **BlocProvider** to receive navigation events in **Router**.
+**BlocProvider** is a **StatefulWidget** and is responsible to build the UI (child) part, providing the ability for this child to obtain the **Bloc** and also to enable the **BlocProvider** for receiving navigation events in **Router**.
 
 `class BlocProvider<B extends Bloc> extends StatefulWidget`
 
 `const BlocProvider({Key key, @required B Function() create, @required Widget child, Router router, UpdateShouldNotify<B> shouldNotify})` - constructor that accept:
-  * `bloc` - function that implement process of **Bloc** creation.
+  * `bloc` - function that implements the **Bloc** creation process.
   * `child` - accept any **Widget**.
   * `router` - optional callback function that will receive navigation states from **Bloc**.
-  * `shouldNotify` - optional predicate function that define whether the descendant widgets should be rebuilt in case if **BlocProvider** was rebuilt.
+  * `shouldNotify` - optional predicate function that define whether the descendant widgets should be rebuilt in case  **BlocProvider** gets rebuilt.
   
 #### Router
-`typedef Router = Function(BuildContext context, String name, dynamic args)` - function that responsible for receiving and handling navigation events.
+`typedef Router = Function(BuildContext context, String name, dynamic args)` - function that is responsible for receiving and handling navigation events.
 
   
 #### Provider
-**Provider** is an **InheritedWidget**. **Provider** is designed for obtain **Bloc** instance into layout widget (Dependency injection). **Provider** has static method **of()**. This method returns **Bloc** from nearest **BlocProvider**.
+**Provider** is an **InheritedWidget**. **Provider** is responible for obtaining a **Bloc** instance into the widget layout (Dependency injection). **Provider** has a static method **of()**. This method returns **Bloc** from nearest **BlocProvider**.
 
 `class Provider<B extends Bloc> extends InheritedWidget`
 `static B of<B extends Bloc>(BuildContext context, {bool listen = false})`
-  * `listen` - define whether descendant widgets tree should be rebuilt in case if BlocProvider will be rebuilt.
+  * `listen` - define whether descendant widgets tree should be rebuilt in case of BlocProvider being rebuilt.
 
 #### BlocBuilder
-**BlocBuilder** based on **StatefulWidget** that has builder function with state. **BlocBuilder** automatically finds **Bloc** with help of **Provider** and subscribe on updates of **Bloc**. Stream for this widget is obtained by state type.
+**BlocBuilder** based on **StatefulWidget** that has builder function with state. **BlocBuilder** automatically finds the **Bloc** with the help of **Provider** and subscribes to **Bloc** updates. The stream for this widget is obtained by state type.
 `class BlocBuilder<B extends Bloc, US> extends StatefulWidget`
 `const BlocBuilder({B bloc, @required BlocWidgetBuilder<US> builder})`
-  * `bloc` - optional param, Provider.of() result will be used by default. 
-  * `builder` - required function that build UI based on UI state.
+  * `bloc` - optional parameter, Provider.of() result will be used by default. 
+  * `builder` - required function that builds the UI based on the UI state.
   
 ## Usage
 
 #### Simple **Bloc** implementation.
-You should register all states that will be used by Bloc with help `registerState<T>()` method. To notify **Widget** about changes you should call `addState<T>(T_object);`. 
-**WARNING!!!** If you will try to call `addState<T>()` method before `registerState<T>()` error will occured.
+You should register all states that will be used by Bloc with the help of the `registerState<T>()` method. To notify **Widget** about changes you should call `addState<T>(T_object);`. 
+**WARNING!!!** If you try to call `addState<T>()` method before `registerState<T>()` an error will be thrown.
 
-If you wanna send some navigation event, you need to call `addNavigation({String routeName, dynamic arguments})` method.
+If you want to send some navigation events, you need to call `addNavigation({String routeName, dynamic arguments})` method.
 
 ```dart
 class CounterBloc extends Bloc {
@@ -103,7 +103,7 @@ class CounterBloc extends Bloc {
 ```
 
 #### **BlocProvider**. 
-`create` function responsible for Bloc creation.
+`create` function responsible for the Bloc creation.
 
 ```dart
 class CounterScreen extends StatelessWidget {
@@ -127,7 +127,7 @@ class CounterScreen extends StatelessWidget {
 ```
 
 #### Navigation handling.
-You could handle navigation with help of `router` as it shown in example above. Or you can use **RoutreListener**.
+You could handle navigation with the help of `router` as shown in the example above. Or you can use **RoutreListener**.
 
 ```dart
 class CounterScreen extends StatelessWidget {
