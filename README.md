@@ -2,7 +2,7 @@
 Library for BLoC design pattern implementation.
 
 ## Authors
-* Yegor Logachev <egor@itomy.ch> ([DashDevs LLC](https://www.dashdevs.com))
+* Yegor Logachev <yegor.logachev@dashdevs.com> ([DashDevs LLC](https://www.dashdevs.com))
 * Olivier Brand <obrand@ingenio.com> ([Ingenio LLC](https://www.ingenio.com))
 ## Intro 
 ### Why we decided to create this solution?
