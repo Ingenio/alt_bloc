@@ -4,12 +4,12 @@ class CounterBloc extends Bloc {
   final repo = IncrementRepo();
 
   CounterBloc() {
-    registerState<String>(initialState: '');
+    registerState<int>(initialState: 0);
     registerState<bool>(initialState: false);
   }
 
-  Future<void> increment() async {
-    addStreamSource<String>(repo.increment().asStream().map((count) => 'Button was clicked $count times'));
+  void increment() {
+    addFutureSource<int>(repo.increment());
   }
 }
 
