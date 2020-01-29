@@ -49,13 +49,13 @@ abstract class Bloc {
     return _navigationController.stream.asBroadcastStream().listen(onData);
   }
 
-  StreamSubscription<S> mapStreamOnState<S>(Stream<S> source) {
-    return _stateHolders[S].controller.mapStream(source);
+  StreamSubscription<S> addStreamSource<S>(Stream<S> source) {
+    // ignore: close_sinks
+    StreamController<S> controller = _stateHolders[S].controller;
+    return controller.addSource(source);
   }
 
-  void mapFutureOnState<S>(Future<S> source) {
-    mapStreamOnState(source.asStream());
-  }
+  StreamSubscription<S> addFutureSource<S>(Future<S> source) => addStreamSource(source.asStream());
 }
 
 class _StateHolder<S> {
@@ -76,25 +76,56 @@ extension _BlocStreamController<T> on StreamController<T> {
     return false;
   }
 
-  StreamSubscription<T> mapStream(Stream<T> source) {
-    var subscription = source.listen((T data) {
-      print('subscription onData $data');
+  /// This function returns _ImmutableStreamSubscription to avoid that onData or onError handlers will be replaced.
+  StreamSubscription<T> addSource(Stream<T> source) {
+    return _ImmutableStreamSubscription(source.listen((T data) {
       addIfNotClosed(data);
-    });
-    subscription.onDone(() {
-      print('subscription onDone');
-      if (!isClosed) {
-        print('subscription cancel');
-        subscription.cancel();
-        subscription = null;
-      }
-    });
-    subscription.onError((error) {
-      print('subscription onError $error');
-      if (!isClosed) {
-        sink.addError(error);
-      }
-    });
-    return subscription;
+    })
+      ..onError((error) {
+        if (!isClosed) {
+          sink.addError(error);
+        }
+      }));
+  }
+}
+
+/// A subscription on events from a [Stream] that doesn't allow to replace onData, onDone and onError event handlers.
+class _ImmutableStreamSubscription<T> implements StreamSubscription<T> {
+  _ImmutableStreamSubscription(this._subscription);
+
+  final StreamSubscription<T> _subscription;
+
+  @override
+  Future<E> asFuture<E>([E futureValue]) => _subscription.asFuture(futureValue);
+
+  @override
+  Future cancel() => _subscription.cancel();
+
+  @override
+  bool get isPaused => _subscription.isPaused;
+
+  @override
+  void onData(void Function(T data) handleData) {
+    throw UnsupportedError('Method onData() doesn\'t supported for this instance of StreamSubscription.');
+  }
+
+  @override
+  void onDone(void Function() handleDone) {
+    throw UnsupportedError('Method onDone() doesn\'t supported for this instance of StreamSubscription.');
+  }
+
+  @override
+  void onError(Function handleError) {
+    throw UnsupportedError('Method onError() doesn\'t supported for this instance of StreamSubscription.');
+  }
+
+  @override
+  void pause([Future resumeSignal]) {
+    _subscription.pause(resumeSignal);
+  }
+
+  @override
+  void resume() {
+    _subscription.resume();
   }
 }

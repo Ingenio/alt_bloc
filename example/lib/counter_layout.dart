@@ -25,11 +25,11 @@ class CounterLayout extends StatelessWidget {
                 Text(
                   'You have pushed the button this many times:',
                 ),
-                BlocBuilder<CounterBloc, int>(
+                BlocBuilder<CounterBloc, String>(
                     /*precondition: (prevCount, count) => count % 2 == 0*/
                     builder: (_, count) {
                       return Text(
-                        '$count',
+                        count,
                         style: Theme.of(context).textTheme.display1,
                       );
                     }),

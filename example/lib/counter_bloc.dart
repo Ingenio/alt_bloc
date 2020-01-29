@@ -1,39 +1,22 @@
-
 import 'package:alt_bloc/alt_bloc.dart';
 
 class CounterBloc extends Bloc {
-
-//  var _counter = 0;
-
   final repo = IncrementRepo();
 
   CounterBloc() {
-    registerState<int>(initialState: 10);
+    registerState<String>(initialState: '');
     registerState<bool>(initialState: false);
   }
 
   Future<void> increment() async {
-    mapStreamOnState<int>(repo.increment().asStream());
-    mapStreamOnState<int>(repo.decrement().asStream());
-
-
-
-//    addState<bool>(true);
-//    // delay simulation
-//    Future.delayed(const Duration(milliseconds: 500), () {
-//      addState<bool>(false);
-//      addState<int>(++_counter);
-//      addNavigation(arguments: _counter);
-//    });
+    addStreamSource<String>(repo.increment().asStream().map((count) => 'Button was clicked $count times'));
   }
 }
 
 class IncrementRepo {
-
   int _counter = 0;
 
-  Future<int> increment() => Future.delayed(const Duration(milliseconds: 500), () => ++_counter);
+  Future<int> increment() => Future.delayed(const Duration(seconds: 1), () => ++_counter);
 
-  Future<int> decrement() => Future.delayed(const Duration(milliseconds: 700), () => --_counter);
-
+  Future<int> decrement() => Future.delayed(const Duration(seconds: 5), () => --_counter);
 }
