@@ -33,7 +33,7 @@ P.S. We highly respect the authors and developers of [bloc](https://pub.dev/pack
 
 `void addNavigation(String routeName, dynamic arguments)` - notifies **BlocProvider** about new navigation state.
 
-`void registerState<US>({bool isBroadcast = false, US initialState})` - previously than notify UI about changes, developer should register UI state class.
+`void registerState<US>({bool isBroadcast = false, US initialState})` - must be called before adding states using **addState**.
 
   * `isBroadcast` - optional, should be true if you want to listen to current states in many places at the same time. 
 
@@ -74,7 +74,7 @@ P.S. We highly respect the authors and developers of [bloc](https://pub.dev/pack
 
 #### Simple **Bloc** implementation.
 You should register all states that will be used by Bloc with the help of the `registerState<T>()` method. To notify **Widget** about changes you should call `addState<T>(T_object);`. 
-**WARNING!!!** If you try to call `addState<T>()` method before `registerState<T>()` error will occur.
+**WARNING!!!** If you try to call `addState<T>()` method before `registerState<T>()` an error will be thrown.
 
 If you want to send some navigation events, you need to call `addNavigation({String routeName, dynamic arguments})` method.
 
