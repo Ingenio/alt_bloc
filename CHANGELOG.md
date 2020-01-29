@@ -2,3 +2,8 @@
 
 * Bloc design pattern solution. Implements Bloc with multi states feature. 
 Implements widgets that improve work with Bloc such as BlocProvider, Provider, BlocBuilder, RouteListener.
+
+## [0.1.1] - 2020/01/29
+* Implements Bloc feature that provide possibility pass Stream or Future as source of states. To 
+use this feature you need to call `StreamSubscription<S> addStreamSource<S>(Stream<S> 
+source)` or `StreamSubscription<S> addFutureSource<S>(Future<S> source)`.

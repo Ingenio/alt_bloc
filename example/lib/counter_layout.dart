@@ -26,7 +26,7 @@ class CounterLayout extends StatelessWidget {
                   'You have pushed the button this many times:',
                 ),
                 BlocBuilder<CounterBloc, int>(
-                    precondition: (prevCount, count) => count % 2 == 0,
+                    /*precondition: (prevCount, count) => count % 2 == 0*/
                     builder: (_, count) {
                       return Text(
                         '$count',

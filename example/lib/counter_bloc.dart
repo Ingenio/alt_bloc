@@ -1,22 +1,22 @@
-
 import 'package:alt_bloc/alt_bloc.dart';
 
 class CounterBloc extends Bloc {
-
-  var _counter = 0;
+  final repo = IncrementRepo();
 
   CounterBloc() {
-    registerState<int>(initialState: 10);
+    registerState<int>(initialState: 0);
     registerState<bool>(initialState: false);
   }
 
   void increment() {
-    addState<bool>(true);
-    // delay simulation
-    Future.delayed(const Duration(milliseconds: 500), () {
-      addState<bool>(false);
-      addState<int>(++_counter);
-      addNavigation(arguments: _counter);
-    });
+    addFutureSource<int>(repo.increment());
   }
+}
+
+class IncrementRepo {
+  int _counter = 0;
+
+  Future<int> increment() => Future.delayed(const Duration(seconds: 1), () => ++_counter);
+
+  Future<int> decrement() => Future.delayed(const Duration(seconds: 5), () => --_counter);
 }
