@@ -102,6 +102,34 @@ class CounterBloc extends Bloc {
 }
 ```
 
+If you have some Future or Stream that contains state objects you can pass it as state source 
+with help `addStreamSource<S>(Stream<S> source)` and `addFutureSource<S>(Future<S> source)` 
+functions.
+For example we have some repository that return Future with incrementation result.
+
+```dart
+class IncrementRepo {
+  int _counter = 0;
+
+  Future<int> increment() => Future.delayed(const Duration(seconds: 1), () => ++_counter);
+
+  Future<int> decrement() => Future.delayed(const Duration(seconds: 5), () => --_counter);
+} 
+
+class CounterBloc extends Bloc {
+  final repo = IncrementRepo();
+
+  CounterBloc() {
+    registerState<int>(initialState: 0);
+    registerState<bool>(initialState: false);
+  }
+
+  void increment() {
+    addFutureSource<int>(repo.increment());
+  }
+}
+```
+
 #### **BlocProvider**. 
 `create` function responsible for the Bloc creation.
 
