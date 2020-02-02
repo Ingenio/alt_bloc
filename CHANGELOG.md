@@ -7,3 +7,6 @@ Implements widgets that improve work with Bloc such as BlocProvider, Provider, B
 * Implements Bloc feature that provide possibility pass Stream or Future as source of states. To 
 use this feature you need to call `StreamSubscription<S> addStreamSource<S>(Stream<S> 
 source)` or `StreamSubscription<S> addFutureSource<S>(Future<S> source)`.
+
+## [0.1.1+1] - 2020/02/02
+* All pub.dev health suggestions have been resolved.
