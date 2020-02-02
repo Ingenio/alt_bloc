@@ -8,7 +8,8 @@ abstract class Bloc {
   final _navigationController = StreamController<RouteSettings>.broadcast();
 
   bool addNavigation({String routeName, dynamic arguments}) {
-    return _navigationController.addIfNotClosed(RouteSettings(name: routeName, arguments: arguments));
+    return _navigationController
+        .addIfNotClosed(RouteSettings(name: routeName, arguments: arguments));
   }
 
   void dispose() {
@@ -21,7 +22,8 @@ abstract class Bloc {
     if (_stateHolders.containsKey(S)) {
       throw ArgumentError('State with type $S already has been registered');
     } else {
-      final stateHolder = _StateHolder<S>(isBroadcast ? StreamController<S>.broadcast() : StreamController<S>(),
+      final stateHolder = _StateHolder<S>(
+          isBroadcast ? StreamController<S>.broadcast() : StreamController<S>(),
           initialState: initialState);
       _stateHolders[S] = stateHolder;
     }
@@ -41,7 +43,8 @@ abstract class Bloc {
     return stream.listen(onData);
   }
 
-  StreamSubscription<RouteSettings> listenNavigation(void onData(RouteSettings state)) {
+  StreamSubscription<RouteSettings> listenNavigation(
+      void onData(RouteSettings state)) {
     return _navigationController.stream.asBroadcastStream().listen(onData);
   }
 
@@ -51,12 +54,15 @@ abstract class Bloc {
     return controller.addSource(source);
   }
 
-  StreamSubscription<S> addFutureSource<S>(Future<S> source) => addStreamSource(source.asStream());
+  StreamSubscription<S> addFutureSource<S>(Future<S> source) =>
+      addStreamSource(source.asStream());
 
   _StateHolder _checkAndGetStateHolder(Type type) {
-    return _stateHolders.containsKey(type) ? _stateHolders[type] : throw ArgumentError('State of $type type was not '
-        'found as registered. Please check that you passed correct type to addState<T>() method or check that you '
-        'called registerState<T>() method before.');
+    return _stateHolders.containsKey(type)
+        ? _stateHolders[type]
+        : throw ArgumentError('State of $type type was not '
+            'found as registered. Please check that you passed correct type to addState<T>() method or check that you '
+            'called registerState<T>() method before.');
   }
 }
 
@@ -107,17 +113,20 @@ class _ImmutableStreamSubscription<T> implements StreamSubscription<T> {
 
   @override
   void onData(void Function(T data) handleData) {
-    throw UnsupportedError('Method onData() doesn\'t supported by this instance of StreamSubscription.');
+    throw UnsupportedError(
+        'Method onData() doesn\'t supported by this instance of StreamSubscription.');
   }
 
   @override
   void onDone(void Function() handleDone) {
-    throw UnsupportedError('Method onDone() doesn\'t supported by this instance of StreamSubscription.');
+    throw UnsupportedError(
+        'Method onDone() doesn\'t supported by this instance of StreamSubscription.');
   }
 
   @override
   void onError(Function handleError) {
-    throw UnsupportedError('Method onError() doesn\'t supported by this instance of StreamSubscription.');
+    throw UnsupportedError(
+        'Method onError() doesn\'t supported by this instance of StreamSubscription.');
   }
 
   @override

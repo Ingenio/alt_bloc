@@ -5,11 +5,11 @@ import 'bloc_holder.dart';
 import 'navigation_subscriber.dart';
 import 'precondition.dart';
 
-
 typedef Router = Function(BuildContext context, String name, dynamic args);
 
 class RouteListener<B extends Bloc> extends BlocHolder<B> {
-  const RouteListener({Key key, @required this.child, this.router, B bloc, this.precondition})
+  const RouteListener(
+      {Key key, @required this.child, this.router, B bloc, this.precondition})
       : assert(child != null),
         super(key: key, bloc: bloc);
 
@@ -21,9 +21,9 @@ class RouteListener<B extends Bloc> extends BlocHolder<B> {
   State<StatefulWidget> createState() => _RouteListenerState<B>();
 }
 
-class _RouteListenerState<B extends Bloc> extends BlocHolderState<B, RouteListener<B>>
-    with NavigationSubscriber<B, RouteListener<B>>{
-
+class _RouteListenerState<B extends Bloc>
+    extends BlocHolderState<B, RouteListener<B>>
+    with NavigationSubscriber<B, RouteListener<B>> {
   @override
   void initState() {
     super.initState();
