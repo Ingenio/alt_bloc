@@ -10,18 +10,19 @@ typedef BlocWidgetBuilder<S> = Widget Function(BuildContext context, S state);
 
 /// Bloc Builder that observe Bloc by subscribing on StreamController.
 class BlocBuilder<B extends Bloc, S> extends BlocHolder<B> {
-
   final BlocWidgetBuilder<S> builder;
   final Precondition<S> precondition;
 
-  const BlocBuilder({Key key, B bloc, @required this.builder, this.precondition}) : super(key: key, bloc: bloc);
+  const BlocBuilder(
+      {Key key, B bloc, @required this.builder, this.precondition})
+      : super(key: key, bloc: bloc);
 
   @override
   State<StatefulWidget> createState() => _BlocBuilderState<B, S>();
 }
 
-class _BlocBuilderState<B extends Bloc, S> extends BlocHolderState<B, BlocBuilder<B, S>> {
-
+class _BlocBuilderState<B extends Bloc, S>
+    extends BlocHolderState<B, BlocBuilder<B, S>> {
   StreamSubscription<S> _subscription;
   S _state;
   S _previousState;

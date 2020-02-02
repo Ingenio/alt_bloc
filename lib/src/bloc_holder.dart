@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 import 'bloc.dart';
 import 'bloc_provider.dart';
@@ -9,8 +9,8 @@ abstract class BlocHolder<B extends Bloc> extends StatefulWidget {
   final B bloc;
 }
 
-abstract class BlocHolderState<B extends Bloc, T extends BlocHolder<B>> extends State<T> {
-
+abstract class BlocHolderState<B extends Bloc, T extends BlocHolder<B>>
+    extends State<T> {
   B bloc;
 
   @override

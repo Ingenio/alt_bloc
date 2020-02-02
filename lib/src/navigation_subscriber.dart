@@ -6,8 +6,8 @@ import 'package:flutter/widgets.dart';
 import 'bloc.dart';
 import 'router.dart';
 
-mixin NavigationSubscriber<B extends Bloc, T extends StatefulWidget> on State<T> {
-
+mixin NavigationSubscriber<B extends Bloc, T extends StatefulWidget>
+    on State<T> {
   StreamSubscription<RouteSettings> subscription;
   Precondition<RouteSettings> get precondition;
   B get bloc;
@@ -21,7 +21,6 @@ mixin NavigationSubscriber<B extends Bloc, T extends StatefulWidget> on State<T>
           router(context, settings.name, settings.arguments);
           _previousSettings = settings;
         }
-
       };
       if (subscription == null) {
         subscription = bloc.listenNavigation(navigateTo);
