@@ -48,14 +48,22 @@ abstract class Bloc {
     return _navigationController.stream.asBroadcastStream().listen(onData);
   }
 
-  StreamSubscription<S> addStreamSource<S>(Stream<S> source) {
+  StreamSubscription<S> addStreamSource<S>(Stream<S> source,
+      {void Function(S data) onData,
+      void Function() onDone,
+      void Function(dynamic error) onError}) {
     // ignore: close_sinks
     StreamController<S> controller = _checkAndGetStateHolder(S).controller;
-    return controller.addSource(source);
+    return controller.addSource(source,
+        onData: onData, onDone: onDone, onError: onError);
   }
 
-  StreamSubscription<S> addFutureSource<S>(Future<S> source) =>
-      addStreamSource(source.asStream());
+  StreamSubscription<S> addFutureSource<S>(Future<S> source,
+          {void Function(S data) onData,
+          void Function() onDone,
+          void Function(dynamic error) onError}) =>
+      addStreamSource(source.asStream(),
+          onData: onData, onDone: onDone, onError: onError);
 
   _StateHolder _checkAndGetStateHolder(Type type) {
     return _stateHolders.containsKey(type)
@@ -84,15 +92,17 @@ extension _BlocStreamController<T> on StreamController<T> {
   }
 
   /// This function returns _ImmutableStreamSubscription to avoid that onData or onError handlers will be replaced.
-  StreamSubscription<T> addSource(Stream<T> source) {
+  StreamSubscription<T> addSource(Stream<T> source,
+      {void Function(T data) onData,
+      void Function() onDone,
+      void Function(dynamic error) onError}) {
     return _ImmutableStreamSubscription(source.listen((T data) {
-      addIfNotClosed(data);
+      if (addIfNotClosed(data)) {
+        onData?.call(data);
+      }
     })
-      ..onError((error) {
-        if (!isClosed) {
-          sink.addError(error);
-        }
-      }));
+      ..onDone(onDone)
+      ..onError(onError));
   }
 }
 
