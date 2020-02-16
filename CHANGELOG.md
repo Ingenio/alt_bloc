@@ -10,3 +10,7 @@ source)` or `StreamSubscription<S> addFutureSource<S>(Future<S> source)`.
 
 ## [0.1.1+1] - 2020/02/02
 * All pub.dev health suggestions have been resolved.
+
+## [0.1.1+2] - 2020/02/15
+* `addStreamSource<S>()` and `addFutureSource<S>()` methods have been improved. New arguments 
+that allow listen for source future/stream state have been added.
