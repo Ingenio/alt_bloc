@@ -9,14 +9,17 @@ class CounterBloc extends Bloc {
   }
 
   void increment() {
-    addFutureSource<int>(repo.increment());
+    addState<bool>(true);
+    addFutureSource<int>(repo.increment(), onDone: () => addState<bool>(false));
   }
 }
 
 class IncrementRepo {
   int _counter = 0;
 
-  Future<int> increment() => Future.delayed(const Duration(seconds: 1), () => ++_counter);
+  Future<int> increment() =>
+      Future.delayed(const Duration(seconds: 1), () => ++_counter);
 
-  Future<int> decrement() => Future.delayed(const Duration(seconds: 5), () => --_counter);
+  Future<int> decrement() =>
+      Future.delayed(const Duration(seconds: 5), () => --_counter);
 }
