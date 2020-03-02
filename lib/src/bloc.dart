@@ -5,11 +5,22 @@ import 'package:flutter/widgets.dart';
 /// Business Logic Component
 abstract class Bloc {
   final _stateHolders = <Type, _StateHolder<dynamic>>{};
-  final _navigationController = StreamController<RouteSettings>.broadcast();
+  final _navigationController = StreamController<RouteData>.broadcast();
 
-  bool addNavigation({String routeName, dynamic arguments}) {
-    return _navigationController
-        .addIfNotClosed(RouteSettings(name: routeName, arguments: arguments));
+  @protected
+  Future<Result> addNavigation<Result>({String routeName, dynamic arguments}) {
+    final resultCompleter = Completer<Result>();
+    _navigationController.addIfNotClosed(
+        RouteData<Result>(RouteSettings(name: routeName, arguments: arguments),
+            (Future<Result> result) {
+      if (resultCompleter.isCompleted) {
+        throw StateError(
+            'Navigation result has been already returned. This error has occurred because several Routers try to handle same navigation action. To avoid it try to use precondition functions in your BlocProvider or RouteListener.');
+      } else {
+        resultCompleter.complete(result);
+      }
+    }));
+    return resultCompleter.future;
   }
 
   void dispose() {
@@ -18,6 +29,7 @@ abstract class Bloc {
     _navigationController.close();
   }
 
+  @protected
   void registerState<S>({bool isBroadcast = false, S initialState}) {
     if (_stateHolders.containsKey(S)) {
       throw ArgumentError('State with type $S already has been registered');
@@ -29,11 +41,13 @@ abstract class Bloc {
     }
   }
 
+  @protected
   bool addState<S>(S uiState) {
     S state = uiState;
     return _checkAndGetStateHolder(S).controller.addIfNotClosed(state);
   }
 
+  @protected
   S initialState<S>() {
     return _checkAndGetStateHolder(S).initialState;
   }
@@ -43,11 +57,11 @@ abstract class Bloc {
     return stream.listen(onData);
   }
 
-  StreamSubscription<RouteSettings> listenNavigation(
-      void onData(RouteSettings state)) {
+  StreamSubscription<RouteData> listenNavigation(void onData(RouteData state)) {
     return _navigationController.stream.asBroadcastStream().listen(onData);
   }
 
+  @protected
   StreamSubscription<S> addStreamSource<S>(Stream<S> source,
       {void Function(S data) onData,
       void Function() onDone,
@@ -58,6 +72,7 @@ abstract class Bloc {
         onData: onData, onDone: onDone, onError: onError);
   }
 
+  @protected
   StreamSubscription<S> addFutureSource<S>(Future<S> source,
           {void Function(S data) onData,
           void Function() onDone,
@@ -73,6 +88,15 @@ abstract class Bloc {
             'called registerState<T>() method before.');
   }
 }
+
+class RouteData<T> {
+  final RouteSettings settings;
+  final ResultConsumer<T> resultConsumer;
+
+  RouteData(this.settings, this.resultConsumer);
+}
+
+typedef ResultConsumer<T> = void Function(Future<T>);
 
 class _StateHolder<S> {
   final StreamController<S> controller;

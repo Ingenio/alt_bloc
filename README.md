@@ -31,15 +31,32 @@ P.S. We highly respect the authors and developers of [bloc](https://pub.dev/pack
 
 `abstract class Bloc`
 
-`void addNavigation(String routeName, dynamic arguments)` - notifies **BlocProvider** about new navigation state.
+`Future<Result> addNavigation<Result>({String routeName, dynamic arguments})` - notifies **BlocProvider** or **RouteListener** about new navigation state. And returns Future that could completes with result value passed to **Navigator.pop** of route that will be pushed in result of this method invokation. But only in case if Router that subscribed on this navigation will return result of **Navigator.push**, **showDialog**, etc.
 
-`void registerState<US>({bool isBroadcast = false, US initialState})` - must be called before adding states using **addState**.
+`void registerState<S>({bool isBroadcast = false, S initialState})` - must be called before adding states using **addState**. **ArgumentError** will be thrown if such state have been registered before.
 
   * `isBroadcast` - optional, should be true if you want to listen to current states in many places at the same time. 
 
   * `initialState` - optional, value of UI state that will be returned by default.
 
-`void addState<US>(US uiState)` - notify all BlocBuilder instances that subscribed to this state about new UI states.
+`bool addState<S>(S uiState)` - notify all state listeners (**BlocBuilder**, etc.) that subscribed on **S** state about new state. If such state was not registered before **ArgumentError** will be thrown.
+
+`S initialState<S>()` - returns initial state of **S** type. If such state was not registered before **ArgumentError** will be thrown.
+
+`StreamSubscription<S> listenState<S>(void onData(S state))` - method that provide possibility subscribe on states of **S** type. If such state was not registered before **ArgumentError** will be thrown.
+ 
+`StreamSubscription<RouteData> listenNavigation(void onData(RouteData state))` - method that provide possibility subscribe on navigation that described by **RouteData** class.
+ 
+`StreamSubscription<S> addStreamSource<S>(Stream<S> source,
+       {void Function(S data) onData,
+       void Function() onDone,
+       void Function(dynamic error) onError})` - method provide possibility pass stream as states provider and  all listeners that subscribed on **S** state will receive source stream events. Returns **StreamSubscription** on source stream. If such state was not registered before **ArgumentError** will be thrown. 
+             
+       
+`StreamSubscription<S> addFutureSource<S>(Future<S> source,
+           {void Function(S data) onData,
+           void Function() onDone,
+           void Function(dynamic error) onError})` - method provide possibility pass future as state provider and all listeners that subscribed on **S** state will receive Future result event. Returns **StreamSubscription** on source future. If such state was not registered before **ArgumentError** will be thrown.
 
 #### BlocProvider
 **BlocProvider** is a **StatefulWidget** and is responsible to build the UI (child) part, providing the ability for this child to obtain the **Bloc** and also to enable the **BlocProvider** for receiving navigation events in **Router**.
@@ -47,17 +64,23 @@ P.S. We highly respect the authors and developers of [bloc](https://pub.dev/pack
 `class BlocProvider<B extends Bloc> extends StatefulWidget`
 
 `const BlocProvider({Key key, @required B Function() create, @required Widget child, Router router, UpdateShouldNotify<B> shouldNotify})` - constructor that accept:
-  * `bloc` - function that implements the **Bloc** creation process.
+  * `create` - function that implements the **Bloc** creation process.
   * `child` - accept any **Widget**.
   * `router` - optional callback function that will receive navigation states from **Bloc**.
   * `shouldNotify` - optional predicate function that define whether the descendant widgets should be rebuilt in case  **BlocProvider** gets rebuilt.
   
 #### Router
-`typedef Router = Function(BuildContext context, String name, dynamic args)` - function that is responsible for receiving and handling navigation events.
+`typedef Router<Result> = Future<Result> Function(BuildContext context, String name, dynamic args);` - function that is responsible for receiving and handling navigation events. This function will be called each time when **Bloc.addNavigation** was invoked. It's play role of data source that returns result of **Navigator.push**, **showDialog**, etc. to **Bloc**.
+ 
+#### RouteListener
+**RouteListener** is a **StatefulWidget** and is responsible to listen for **Bloc** navigation events and handle it.
 
-  
+`class RouteListener<B extends Bloc>`
+
+`const RouteListener({Key key, @required Widget child, Router router, B bloc, Precondition<RouteSettings> precondition precondition})`
+     
 #### Provider
-**Provider** is an **InheritedWidget**. **Provider** is responible for obtaining a **Bloc** instance into the widget layout (Dependency injection). **Provider** has a static method **of()**. This method returns **Bloc** from nearest **BlocProvider**.
+**Provider** is an **InheritedWidget**. **Provider** is responsible for obtaining a **Bloc** instance into the widget layout (Dependency injection). **Provider** has a static method **of()**. This method returns **Bloc** from nearest **BlocProvider**.
 
 `class Provider<B extends Bloc> extends InheritedWidget`
 `static B of<B extends Bloc>(BuildContext context, {bool listen = false})`
@@ -66,9 +89,12 @@ P.S. We highly respect the authors and developers of [bloc](https://pub.dev/pack
 #### BlocBuilder
 **BlocBuilder** based on **StatefulWidget** that has builder function with state. **BlocBuilder** automatically finds the **Bloc** with the help of **Provider** and subscribes to **Bloc** updates. The stream for this widget is obtained by state type.
 `class BlocBuilder<B extends Bloc, US> extends StatefulWidget`
-`const BlocBuilder({B bloc, @required BlocWidgetBuilder<US> builder})`
+`const BlocBuilder({Key key, B bloc, @required BlocWidgetBuilder<S> builder, Precondition<S> precondition})`
   * `bloc` - optional parameter, Provider.of() result will be used by default. 
   * `builder` - required function that builds the UI based on the UI state.
+  * `precondition` - optional function that define condition for call **builder** function.
+  
+  
   
 ## Usage
 
@@ -125,8 +151,13 @@ class CounterBloc extends Bloc {
   }
 
   void increment() {
-    addFutureSource<int>(repo.increment());
-  }
+      addState<bool>(true);
+      addFutureSource<int>(repo.increment(),
+          onData: (count) async {
+            print('Dialog result: ${await addNavigation(arguments: count)}');
+          },
+          onDone: () => addState<bool>(false));
+    }
 }
 ```
 
@@ -140,13 +171,19 @@ class CounterScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<CounterBloc>(
       create: () => CounterBloc(),
+      routerPrecondition: (_, settings) => (settings.arguments as int) % 5 == 0,
       child: CounterLayout(title: 'Bloc Demo Home Page'),
       router: (context, name, args) {
-        showDialog(
+        return showDialog(
           context: context,
-          builder: (_) => AlertDialog(
-            title: Text('Congratulations! You clicked $args times'),
-          ),
+          builder: (_) => WillPopScope(
+                          child: AlertDialog(
+                            title: Text('Congratulations! You clicked $args times'),
+                          ),
+                          onWillPop: () async {
+                            Navigator.of(context).pop(args);
+                            return false;
+                          })
         );
       },
     );
@@ -164,12 +201,10 @@ class CounterScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<CounterBloc>(
       create: () => CounterBloc(),
-
-      
       child: RouteListener<CounterBloc>(
         child: CounterLayout(title: 'Bloc Demo Home Page'),
         router: (context, name, args) {
-          showDialog(
+          return showDialog(
             context: context,
             builder: (_) => AlertDialog(
               title: Text('Congratulations! You clicked $args times'),
