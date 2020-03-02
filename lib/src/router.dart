@@ -5,7 +5,8 @@ import 'bloc_holder.dart';
 import 'navigation_subscriber.dart';
 import 'precondition.dart';
 
-typedef Router = Function(BuildContext context, String name, dynamic args);
+typedef Router<Result> = Future<Result> Function(
+    BuildContext context, String name, dynamic args);
 
 class RouteListener<B extends Bloc> extends BlocHolder<B> {
   const RouteListener(

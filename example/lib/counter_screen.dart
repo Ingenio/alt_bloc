@@ -6,30 +6,26 @@ import 'counter_layout.dart';
 
 /// entity that encapsulate mapping Layout(UI), Bloc(Business Logic), router(Navigation Handler) on BlocProvider
 class CounterScreen extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return BlocProvider<CounterBloc>(
       create: () => CounterBloc(),
-      routerPrecondition: (prevSettings, settings) => (settings.arguments as int) % 7 == 0,
-      router: (context, name, args) {
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: Text('Congratulations! You clicked $args times'),
-          ),
-        );
-      },
       child: RouteListener<CounterBloc>(
         child: CounterLayout(title: 'Bloc Demo Home Page'),
-        precondition: (prevSettings, settings) => (settings.arguments as int) % 7 == 0,
+        precondition: (prevSettings, settings) =>
+            (settings.arguments as int) % 5 == 0,
         router: (context, name, args) {
-          showDialog(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: Text('Congratulations! You clicked $args times'),
-            ),
-          );
+          return showDialog(
+              context: context,
+              builder: (_) => WillPopScope(
+                  child: AlertDialog(
+                    title: Text('Congratulations! You clicked $args times'),
+                  ),
+                  onWillPop: () async {
+                    Navigator.of(context)
+                        .pop('Dialog with $args clicks has been closed');
+                    return false;
+                  }));
         },
       ),
     );

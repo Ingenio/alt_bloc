@@ -8,7 +8,7 @@ import 'router.dart';
 
 mixin NavigationSubscriber<B extends Bloc, T extends StatefulWidget>
     on State<T> {
-  StreamSubscription<RouteSettings> subscription;
+  StreamSubscription<RouteData> subscription;
   Precondition<RouteSettings> get precondition;
   B get bloc;
   Router get router;
@@ -16,10 +16,12 @@ mixin NavigationSubscriber<B extends Bloc, T extends StatefulWidget>
 
   void subscribe() {
     if (router != null) {
-      final navigateTo = (RouteSettings settings) {
-        if (precondition?.call(_previousSettings, settings) ?? true) {
-          router(context, settings.name, settings.arguments);
-          _previousSettings = settings;
+      final navigateTo = (RouteData data) {
+        if (precondition?.call(_previousSettings, data.settings) ?? true) {
+          final result =
+              router(context, data.settings.name, data.settings.arguments);
+          data.resultConsumer(result);
+          _previousSettings = data.settings;
         }
       };
       if (subscription == null) {

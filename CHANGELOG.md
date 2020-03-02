@@ -14,3 +14,9 @@ source)` or `StreamSubscription<S> addFutureSource<S>(Future<S> source)`.
 ## [0.1.1+2] - 2020/02/15
 * `addStreamSource<S>()` and `addFutureSource<S>()` methods have been improved. New arguments 
 that allow listen for source future/stream state have been added.
+
+## [0.1.2] - 2020/02/26
+* `addNavigation<R>()` method has been improved and returns a Future that completes to the result
+ value passed to `Navigator.pop()` when the pushed route is popped off the navigator.
+* Bloc methods `registerState`, `initialState`, `addNavigation`, `addState`, `addStreamSource` and
+ `addFutureSource` were marked as protected.   
