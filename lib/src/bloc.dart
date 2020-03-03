@@ -5,13 +5,15 @@ import 'package:flutter/widgets.dart';
 /// Business Logic Component
 abstract class Bloc {
   final _stateHolders = <Type, _StateHolder<dynamic>>{};
-  final _navigationController = StreamController<RouteData>.broadcast();
+  final _navigationControllerWrapper = _NavigationStreamControllerWrapper(
+      StreamController<RouteData>.broadcast());
 
   @protected
   Future<Result> addNavigation<Result>({String routeName, dynamic arguments}) {
     final resultCompleter = Completer<Result>();
-    _navigationController.addIfNotClosed(
-        RouteData<Result>(RouteSettings(name: routeName, arguments: arguments), (Future<Result> result) {
+    _navigationControllerWrapper.add(
+        RouteData<Result>(RouteSettings(name: routeName, arguments: arguments),
+            (Future<Result> result) {
       if (resultCompleter.isCompleted) {
         throw StateError(
             'Navigation result has been already returned. This error has occurred because several Routers try to handle same navigation action. To avoid it try to use precondition functions in your BlocProvider or RouteListener.');
@@ -22,12 +24,10 @@ abstract class Bloc {
     return resultCompleter.future;
   }
 
-  void onStart() {}
-
   void dispose() {
     _stateHolders.forEach((_, holder) => holder.controller.close());
     _stateHolders.clear();
-    _navigationController.close();
+    _navigationControllerWrapper.close();
   }
 
   @protected
@@ -35,7 +35,8 @@ abstract class Bloc {
     if (_stateHolders.containsKey(S)) {
       throw ArgumentError('State with type $S already has been registered');
     } else {
-      final stateHolder = _StateHolder<S>(isBroadcast ? StreamController<S>.broadcast() : StreamController<S>(),
+      final stateHolder = _StateHolder<S>(
+          isBroadcast ? StreamController<S>.broadcast() : StreamController<S>(),
           initialState: initialState);
       _stateHolders[S] = stateHolder;
     }
@@ -47,7 +48,6 @@ abstract class Bloc {
     return _checkAndGetStateHolder(S).controller.addIfNotClosed(state);
   }
 
-  @protected
   S initialState<S>() {
     return _checkAndGetStateHolder(S).initialState;
   }
@@ -58,21 +58,29 @@ abstract class Bloc {
   }
 
   StreamSubscription<RouteData> listenNavigation(void onData(RouteData state)) {
-    return _navigationController.stream.asBroadcastStream().listen(onData);
+    return _navigationControllerWrapper.stream
+        .asBroadcastStream()
+        .listen(onData);
   }
 
   @protected
   StreamSubscription<S> addStreamSource<S>(Stream<S> source,
-      {void Function(S data) onData, void Function() onDone, void Function(dynamic error) onError}) {
+      {void Function(S data) onData,
+      void Function() onDone,
+      void Function(dynamic error) onError}) {
     // ignore: close_sinks
     StreamController<S> controller = _checkAndGetStateHolder(S).controller;
-    return controller.addSource(source, onData: onData, onDone: onDone, onError: onError);
+    return controller.addSource(source,
+        onData: onData, onDone: onDone, onError: onError);
   }
 
   @protected
   StreamSubscription<S> addFutureSource<S>(Future<S> source,
-          {void Function(S data) onData, void Function() onDone, void Function(dynamic error) onError}) =>
-      addStreamSource(source.asStream(), onData: onData, onDone: onDone, onError: onError);
+          {void Function(S data) onData,
+          void Function() onDone,
+          void Function(dynamic error) onError}) =>
+      addStreamSource(source.asStream(),
+          onData: onData, onDone: onDone, onError: onError);
 
   _StateHolder _checkAndGetStateHolder(Type type) {
     return _stateHolders.containsKey(type)
@@ -111,7 +119,9 @@ extension _BlocStreamController<T> on StreamController<T> {
 
   /// This function returns _ImmutableStreamSubscription to avoid that onData or onError handlers will be replaced.
   StreamSubscription<T> addSource(Stream<T> source,
-      {void Function(T data) onData, void Function() onDone, void Function(dynamic error) onError}) {
+      {void Function(T data) onData,
+      void Function() onDone,
+      void Function(dynamic error) onError}) {
     return _ImmutableStreamSubscription(source.listen((T data) {
       if (addIfNotClosed(data)) {
         onData?.call(data);
@@ -139,17 +149,20 @@ class _ImmutableStreamSubscription<T> implements StreamSubscription<T> {
 
   @override
   void onData(void Function(T data) handleData) {
-    throw UnsupportedError('Method onData() doesn\'t supported by this instance of StreamSubscription.');
+    throw UnsupportedError(
+        'Method onData() doesn\'t supported by this instance of StreamSubscription.');
   }
 
   @override
   void onDone(void Function() handleDone) {
-    throw UnsupportedError('Method onDone() doesn\'t supported by this instance of StreamSubscription.');
+    throw UnsupportedError(
+        'Method onDone() doesn\'t supported by this instance of StreamSubscription.');
   }
 
   @override
   void onError(Function handleError) {
-    throw UnsupportedError('Method onError() doesn\'t supported by this instance of StreamSubscription.');
+    throw UnsupportedError(
+        'Method onError() doesn\'t supported by this instance of StreamSubscription.');
   }
 
   @override
@@ -161,4 +174,37 @@ class _ImmutableStreamSubscription<T> implements StreamSubscription<T> {
   void resume() {
     _subscription.resume();
   }
+}
+
+class _NavigationStreamControllerWrapper<T> {
+  _NavigationStreamControllerWrapper(this._streamController) {
+    _streamController.onListen = () {
+      if (lastEvent != null) {
+        add(lastEvent);
+      }
+    };
+  }
+
+  final StreamController<T> _streamController;
+
+  T lastEvent;
+
+  bool add(T event) {
+    if (_streamController.hasListener) {
+      if (!_streamController.isClosed) {
+        _streamController.sink.add(event);
+        return true;
+      }
+    } else {
+      lastEvent = event;
+    }
+    return false;
+  }
+
+  void close() {
+    lastEvent = null;
+    _streamController.close();
+  }
+
+  Stream<T> get stream => _streamController.stream;
 }

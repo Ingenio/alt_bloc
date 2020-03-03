@@ -19,13 +19,17 @@ class Provider<B extends Bloc> extends InheritedWidget {
 
   @override
   bool updateShouldNotify(Provider oldWidget) {
-    return shouldNotify != null ? shouldNotify(oldWidget.bloc, bloc) : oldWidget.bloc != bloc;
+    return shouldNotify != null
+        ? shouldNotify(oldWidget.bloc, bloc)
+        : oldWidget.bloc != bloc;
   }
 
   static B of<B extends Bloc>(BuildContext context, {bool listen = false}) {
     final Provider<B> provider = listen
         ? context.dependOnInheritedWidgetOfExactType<Provider<B>>()
-        : context.getElementForInheritedWidgetOfExactType<Provider<B>>()?.widget;
+        : context
+            .getElementForInheritedWidgetOfExactType<Provider<B>>()
+            ?.widget;
     return provider?.bloc;
   }
 }
@@ -53,15 +57,15 @@ class BlocProvider<B extends Bloc> extends StatefulWidget {
   _BlocProviderState<B> createState() => _BlocProviderState<B>();
 }
 
-class _BlocProviderState<B extends Bloc> extends State<BlocProvider<B>> with NavigationSubscriber<B, BlocProvider<B>> {
+class _BlocProviderState<B extends Bloc> extends State<BlocProvider<B>>
+    with NavigationSubscriber<B, BlocProvider<B>> {
   B _bloc;
 
   @override
   void initState() {
     _bloc ??= widget.create();
-    super.initState();
     subscribe();
-    _bloc.onStart();
+    super.initState();
   }
 
   @override
