@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+
 import 'bloc.dart';
 import 'navigation_subscriber.dart';
 import 'precondition.dart';
@@ -63,8 +64,8 @@ class _BlocProviderState<B extends Bloc> extends State<BlocProvider<B>>
   @override
   void initState() {
     _bloc ??= widget.create();
-    super.initState();
     subscribe();
+    super.initState();
   }
 
   @override

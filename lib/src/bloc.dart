@@ -5,12 +5,13 @@ import 'package:flutter/widgets.dart';
 /// Business Logic Component
 abstract class Bloc {
   final _stateHolders = <Type, _StateHolder<dynamic>>{};
-  final _navigationController = StreamController<RouteData>.broadcast();
+  final _navigationControllerWrapper = _NavigationStreamControllerWrapper(
+      StreamController<RouteData>.broadcast());
 
   @protected
   Future<Result> addNavigation<Result>({String routeName, dynamic arguments}) {
     final resultCompleter = Completer<Result>();
-    _navigationController.addIfNotClosed(
+    _navigationControllerWrapper.add(
         RouteData<Result>(RouteSettings(name: routeName, arguments: arguments),
             (Future<Result> result) {
       if (resultCompleter.isCompleted) {
@@ -26,7 +27,7 @@ abstract class Bloc {
   void dispose() {
     _stateHolders.forEach((_, holder) => holder.controller.close());
     _stateHolders.clear();
-    _navigationController.close();
+    _navigationControllerWrapper.close();
   }
 
   @protected
@@ -47,7 +48,6 @@ abstract class Bloc {
     return _checkAndGetStateHolder(S).controller.addIfNotClosed(state);
   }
 
-  @protected
   S initialState<S>() {
     return _checkAndGetStateHolder(S).initialState;
   }
@@ -58,7 +58,9 @@ abstract class Bloc {
   }
 
   StreamSubscription<RouteData> listenNavigation(void onData(RouteData state)) {
-    return _navigationController.stream.asBroadcastStream().listen(onData);
+    return _navigationControllerWrapper.stream
+        .asBroadcastStream()
+        .listen(onData);
   }
 
   @protected
@@ -172,4 +174,37 @@ class _ImmutableStreamSubscription<T> implements StreamSubscription<T> {
   void resume() {
     _subscription.resume();
   }
+}
+
+class _NavigationStreamControllerWrapper<T> {
+  _NavigationStreamControllerWrapper(this._streamController) {
+    _streamController.onListen = () {
+      if (lastEvent != null) {
+        add(lastEvent);
+      }
+    };
+  }
+
+  final StreamController<T> _streamController;
+
+  T lastEvent;
+
+  bool add(T event) {
+    if (_streamController.hasListener) {
+      if (!_streamController.isClosed) {
+        _streamController.sink.add(event);
+        return true;
+      }
+    } else {
+      lastEvent = event;
+    }
+    return false;
+  }
+
+  void close() {
+    lastEvent = null;
+    _streamController.close();
+  }
+
+  Stream<T> get stream => _streamController.stream;
 }
