@@ -11,8 +11,7 @@ abstract class Bloc {
   Future<Result> addNavigation<Result>({String routeName, dynamic arguments}) {
     final resultCompleter = Completer<Result>();
     _navigationController.addIfNotClosed(
-        RouteData<Result>(RouteSettings(name: routeName, arguments: arguments),
-            (Future<Result> result) {
+        RouteData<Result>(RouteSettings(name: routeName, arguments: arguments), (Future<Result> result) {
       if (resultCompleter.isCompleted) {
         throw StateError(
             'Navigation result has been already returned. This error has occurred because several Routers try to handle same navigation action. To avoid it try to use precondition functions in your BlocProvider or RouteListener.');
@@ -22,6 +21,8 @@ abstract class Bloc {
     }));
     return resultCompleter.future;
   }
+
+  void onStart() {}
 
   void dispose() {
     _stateHolders.forEach((_, holder) => holder.controller.close());
@@ -34,8 +35,7 @@ abstract class Bloc {
     if (_stateHolders.containsKey(S)) {
       throw ArgumentError('State with type $S already has been registered');
     } else {
-      final stateHolder = _StateHolder<S>(
-          isBroadcast ? StreamController<S>.broadcast() : StreamController<S>(),
+      final stateHolder = _StateHolder<S>(isBroadcast ? StreamController<S>.broadcast() : StreamController<S>(),
           initialState: initialState);
       _stateHolders[S] = stateHolder;
     }
@@ -63,22 +63,16 @@ abstract class Bloc {
 
   @protected
   StreamSubscription<S> addStreamSource<S>(Stream<S> source,
-      {void Function(S data) onData,
-      void Function() onDone,
-      void Function(dynamic error) onError}) {
+      {void Function(S data) onData, void Function() onDone, void Function(dynamic error) onError}) {
     // ignore: close_sinks
     StreamController<S> controller = _checkAndGetStateHolder(S).controller;
-    return controller.addSource(source,
-        onData: onData, onDone: onDone, onError: onError);
+    return controller.addSource(source, onData: onData, onDone: onDone, onError: onError);
   }
 
   @protected
   StreamSubscription<S> addFutureSource<S>(Future<S> source,
-          {void Function(S data) onData,
-          void Function() onDone,
-          void Function(dynamic error) onError}) =>
-      addStreamSource(source.asStream(),
-          onData: onData, onDone: onDone, onError: onError);
+          {void Function(S data) onData, void Function() onDone, void Function(dynamic error) onError}) =>
+      addStreamSource(source.asStream(), onData: onData, onDone: onDone, onError: onError);
 
   _StateHolder _checkAndGetStateHolder(Type type) {
     return _stateHolders.containsKey(type)
@@ -117,9 +111,7 @@ extension _BlocStreamController<T> on StreamController<T> {
 
   /// This function returns _ImmutableStreamSubscription to avoid that onData or onError handlers will be replaced.
   StreamSubscription<T> addSource(Stream<T> source,
-      {void Function(T data) onData,
-      void Function() onDone,
-      void Function(dynamic error) onError}) {
+      {void Function(T data) onData, void Function() onDone, void Function(dynamic error) onError}) {
     return _ImmutableStreamSubscription(source.listen((T data) {
       if (addIfNotClosed(data)) {
         onData?.call(data);
@@ -147,20 +139,17 @@ class _ImmutableStreamSubscription<T> implements StreamSubscription<T> {
 
   @override
   void onData(void Function(T data) handleData) {
-    throw UnsupportedError(
-        'Method onData() doesn\'t supported by this instance of StreamSubscription.');
+    throw UnsupportedError('Method onData() doesn\'t supported by this instance of StreamSubscription.');
   }
 
   @override
   void onDone(void Function() handleDone) {
-    throw UnsupportedError(
-        'Method onDone() doesn\'t supported by this instance of StreamSubscription.');
+    throw UnsupportedError('Method onDone() doesn\'t supported by this instance of StreamSubscription.');
   }
 
   @override
   void onError(Function handleError) {
-    throw UnsupportedError(
-        'Method onError() doesn\'t supported by this instance of StreamSubscription.');
+    throw UnsupportedError('Method onError() doesn\'t supported by this instance of StreamSubscription.');
   }
 
   @override
