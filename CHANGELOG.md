@@ -19,4 +19,7 @@ that allow listen for source future/stream state have been added.
 * `addNavigation<R>()` method has been improved and returns a Future that completes to the result
  value passed to `Navigator.pop()` when the pushed route is popped off the navigator.
 * Bloc methods `registerState`, `initialState`, `addNavigation`, `addState`, `addStreamSource` and
- `addFutureSource` were marked as protected.   
+ `addFutureSource` were marked as protected.
+ 
+## [0.1.2+1] - 2020/03/04
+* Issue with navigation events loss has been fixed.
