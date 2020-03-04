@@ -179,15 +179,16 @@ class _ImmutableStreamSubscription<T> implements StreamSubscription<T> {
 class _NavigationStreamControllerWrapper<T> {
   _NavigationStreamControllerWrapper(this._streamController) {
     _streamController.onListen = () {
-      if (lastEvent != null) {
-        add(lastEvent);
+      if (_lastEvent != null) {
+        add(_lastEvent);
+        _lastEvent = null;
       }
     };
   }
 
   final StreamController<T> _streamController;
 
-  T lastEvent;
+  T _lastEvent;
 
   bool add(T event) {
     if (_streamController.hasListener) {
@@ -196,13 +197,12 @@ class _NavigationStreamControllerWrapper<T> {
         return true;
       }
     } else {
-      lastEvent = event;
+      _lastEvent = event;
     }
     return false;
   }
 
   void close() {
-    lastEvent = null;
     _streamController.close();
   }
 

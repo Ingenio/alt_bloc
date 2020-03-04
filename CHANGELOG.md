@@ -23,3 +23,7 @@ that allow listen for source future/stream state have been added.
  
 ## [0.1.2+1] - 2020/03/04
 * Issue with navigation events loss has been fixed.
+
+## [0.1.2+2] - 2020/03/04
+*  Hotfix of navigation events processing flow.  
+
