@@ -26,7 +26,6 @@ abstract class Bloc {
 
   void dispose() {
     _stateHolders.forEach((_, holder) => holder.controller.close());
-    _stateHolders.clear();
     _navigationControllerWrapper.close();
   }
 
