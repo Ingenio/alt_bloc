@@ -25,5 +25,9 @@ that allow listen for source future/stream state have been added.
 * Issue with navigation events loss has been fixed.
 
 ## [0.1.2+2] - 2020/03/04
-*  Hotfix of navigation events processing flow.  
+*  Hotfix of navigation events processing flow.
+
+## [0.1.2+3] - 2020/03/13
+* Issue with throwing `ArgumentError` after call `addState` method for disposed bloc has been
+ fixed. 
 
