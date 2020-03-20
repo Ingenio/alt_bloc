@@ -13,16 +13,15 @@ abstract class Bloc {
   Future<Result> addNavigation<Result>({String routeName, dynamic arguments}) {
     final resultCompleter = Completer<Result>();
     _navigationControllerWrapper.add(
-        RouteData<Result>(
-            RouteSettings(name: routeName, arguments: arguments),
-                (Future<Result> result) {
-              if (resultCompleter.isCompleted) {
-                throw StateError(
-                    'Navigation result has been already returned. This error has occurred because several Routers try to handle same navigation action. To avoid it try to use precondition functions in your BlocProvider or RouteListener.');
-              } else {
-                resultCompleter.complete(result);
-              }
-            }));
+        RouteData<Result>(RouteSettings(name: routeName, arguments: arguments),
+            (Future<Result> result) {
+      if (resultCompleter.isCompleted) {
+        throw StateError(
+            'Navigation result has been already returned. This error has occurred because several Routers try to handle same navigation action. To avoid it try to use precondition functions in your BlocProvider or RouteListener.');
+      } else {
+        resultCompleter.complete(result);
+      }
+    }));
     return resultCompleter.future;
   }
 
@@ -76,6 +75,14 @@ abstract class Bloc {
       addStreamSource(source.asStream(),
           onData: onData, onDone: onDone, onError: onError);
 
+  @protected
+  StreamSubscription<RouteData> addNavigationSource(Stream<RouteData> source,
+      {void Function(RouteData data) onData,
+      void Function() onDone,
+      void Function(dynamic error) onError}) {
+    return _navigationControllerWrapper._streamController
+        .addSource(source, onData: onData, onDone: onDone, onError: onError);
+  }
 }
 
 class RouteData<T> {
@@ -96,7 +103,6 @@ class _StateHolder<S> {
 }
 
 extension _BlocStreamController<T> on StreamController<T> {
-
   /// This function returns _ImmutableStreamSubscription to avoid that onData or onError handlers will be replaced.
   StreamSubscription<T> addSource(Stream<T> source,
       {void Function(T data) onData,
@@ -191,20 +197,21 @@ class _NavigationStreamControllerWrapper<T> {
 }
 
 class _StateHoldersStore extends MapBase<Type, _StateHolder<dynamic>> {
-
   final _stateHolders = <Type, _StateHolder<dynamic>>{};
 
   @override
   _StateHolder operator [](Object key) {
-    return _stateHolders[key] ?? (throw ArgumentError('State of $key type was not '
-        'found as registered. Please check that you passed correct type to Bloc.addState<T>() method or check that you '
-        'called Bloc.registerState<T>() method before.'));
+    return _stateHolders[key] ??
+        (throw ArgumentError('State of $key type was not '
+            'found as registered. Please check that you passed correct type to Bloc.addState<T>() method or check that you '
+            'called Bloc.registerState<T>() method before.'));
   }
 
   @override
   void operator []=(Type key, _StateHolder value) {
     _stateHolders.containsKey(key)
-        ? throw ArgumentError('State with type $key already has been registered')
+        ? throw ArgumentError(
+            'State with type $key already has been registered')
         : _stateHolders[key] = value;
   }
 
@@ -216,5 +223,4 @@ class _StateHoldersStore extends MapBase<Type, _StateHolder<dynamic>> {
 
   @override
   _StateHolder remove(Object key) => _stateHolders.remove(key);
-
 }
