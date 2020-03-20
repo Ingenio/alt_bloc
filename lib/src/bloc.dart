@@ -1,10 +1,11 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:flutter/widgets.dart';
 
 /// Business Logic Component
 abstract class Bloc {
-  final _stateHolders = <Type, _StateHolder<dynamic>>{};
+  final _store = _StateHoldersStore();
   final _navigationControllerWrapper = _NavigationStreamControllerWrapper(
       StreamController<RouteData>.broadcast());
 
@@ -12,55 +13,47 @@ abstract class Bloc {
   Future<Result> addNavigation<Result>({String routeName, dynamic arguments}) {
     final resultCompleter = Completer<Result>();
     _navigationControllerWrapper.add(
-        RouteData<Result>(RouteSettings(name: routeName, arguments: arguments),
-            (Future<Result> result) {
-      if (resultCompleter.isCompleted) {
-        throw StateError(
-            'Navigation result has been already returned. This error has occurred because several Routers try to handle same navigation action. To avoid it try to use precondition functions in your BlocProvider or RouteListener.');
-      } else {
-        resultCompleter.complete(result);
-      }
-    }));
+        RouteData<Result>(
+            RouteSettings(name: routeName, arguments: arguments),
+                (Future<Result> result) {
+              if (resultCompleter.isCompleted) {
+                throw StateError(
+                    'Navigation result has been already returned. This error has occurred because several Routers try to handle same navigation action. To avoid it try to use precondition functions in your BlocProvider or RouteListener.');
+              } else {
+                resultCompleter.complete(result);
+              }
+            }));
     return resultCompleter.future;
   }
 
   void dispose() {
-    _stateHolders.forEach((_, holder) => holder.controller.close());
+    _store.forEach((_, holder) => holder.controller.close());
     _navigationControllerWrapper.close();
   }
 
   @protected
   void registerState<S>({bool isBroadcast = false, S initialState}) {
-    if (_stateHolders.containsKey(S)) {
-      throw ArgumentError('State with type $S already has been registered');
-    } else {
-      final stateHolder = _StateHolder<S>(
-          isBroadcast ? StreamController<S>.broadcast() : StreamController<S>(),
-          initialState: initialState);
-      _stateHolders[S] = stateHolder;
-    }
+    _store[S] = _StateHolder<S>(
+        isBroadcast ? StreamController<S>.broadcast() : StreamController<S>(),
+        initialState: initialState);
   }
 
   @protected
   bool addState<S>(S uiState) {
-    S state = uiState;
-    return _checkAndGetStateHolder(S).controller.addIfNotClosed(state);
+    // ignore: close_sinks
+    final controller = _store[S].controller;
+    if (!controller.isClosed) {
+      controller.sink.add(uiState);
+      return true;
+    }
+    return false;
   }
 
-  S initialState<S>() {
-    return _checkAndGetStateHolder(S).initialState;
-  }
+  S initialState<S>() => _store[S].initialState;
 
-  StreamSubscription<S> listenState<S>(void onData(S state)) {
-    Stream<S> stream = _checkAndGetStateHolder(S).controller.stream;
-    return stream.listen(onData);
-  }
+  Stream<RouteData> get navigationStream => _navigationControllerWrapper.stream;
 
-  StreamSubscription<RouteData> listenNavigation(void onData(RouteData state)) {
-    return _navigationControllerWrapper.stream
-        .asBroadcastStream()
-        .listen(onData);
-  }
+  Stream<S> getStateStream<S>() => _store[S].controller.stream;
 
   @protected
   StreamSubscription<S> addStreamSource<S>(Stream<S> source,
@@ -68,7 +61,7 @@ abstract class Bloc {
       void Function() onDone,
       void Function(dynamic error) onError}) {
     // ignore: close_sinks
-    StreamController<S> controller = _checkAndGetStateHolder(S).controller;
+    StreamController<S> controller = _store[S].controller;
     return controller.addSource(source,
         onData: onData, onDone: onDone, onError: onError);
   }
@@ -81,13 +74,6 @@ abstract class Bloc {
       addStreamSource(source.asStream(),
           onData: onData, onDone: onDone, onError: onError);
 
-  _StateHolder _checkAndGetStateHolder(Type type) {
-    return _stateHolders.containsKey(type)
-        ? _stateHolders[type]
-        : throw ArgumentError('State of $type type was not '
-            'found as registered. Please check that you passed correct type to addState<T>() method or check that you '
-            'called registerState<T>() method before.');
-  }
 }
 
 class RouteData<T> {
@@ -108,13 +94,6 @@ class _StateHolder<S> {
 }
 
 extension _BlocStreamController<T> on StreamController<T> {
-  bool addIfNotClosed(T event) {
-    if (!isClosed) {
-      sink.add(event);
-      return true;
-    }
-    return false;
-  }
 
   /// This function returns _ImmutableStreamSubscription to avoid that onData or onError handlers will be replaced.
   StreamSubscription<T> addSource(Stream<T> source,
@@ -122,7 +101,8 @@ extension _BlocStreamController<T> on StreamController<T> {
       void Function() onDone,
       void Function(dynamic error) onError}) {
     return _ImmutableStreamSubscription(source.listen((T data) {
-      if (addIfNotClosed(data)) {
+      if (!isClosed) {
+        sink.add(data);
         onData?.call(data);
       }
     })
@@ -206,4 +186,33 @@ class _NavigationStreamControllerWrapper<T> {
   }
 
   Stream<T> get stream => _streamController.stream;
+}
+
+class _StateHoldersStore extends MapBase<Type, _StateHolder<dynamic>> {
+
+  final _stateHolders = <Type, _StateHolder<dynamic>>{};
+
+  @override
+  _StateHolder operator [](Object key) {
+    return _stateHolders[key] ?? (throw ArgumentError('State of $key type was not '
+        'found as registered. Please check that you passed correct type to Bloc.addState<T>() method or check that you '
+        'called Bloc.registerState<T>() method before.'));
+  }
+
+  @override
+  void operator []=(Type key, _StateHolder value) {
+    _stateHolders.containsKey(key)
+        ? throw ArgumentError('State with type $key already has been registered')
+        : _stateHolders[key] = value;
+  }
+
+  @override
+  void clear() => _stateHolders.clear();
+
+  @override
+  Iterable<Type> get keys => _stateHolders.keys;
+
+  @override
+  _StateHolder remove(Object key) => _stateHolders.remove(key);
+
 }

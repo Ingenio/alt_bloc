@@ -45,7 +45,7 @@ class _BlocBuilderState<B extends Bloc, S>
   }
 
   void _subscribe() {
-    _subscription = bloc.listenState<S>((S state) {
+    _subscription = bloc.getStateStream<S>().listen((S state) {
       if (widget.precondition?.call(_previousState, state) ?? true) {
         setState(() {
           _previousState = _state;

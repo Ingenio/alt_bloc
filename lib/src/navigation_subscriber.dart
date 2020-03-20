@@ -25,7 +25,7 @@ mixin NavigationSubscriber<B extends Bloc, T extends StatefulWidget>
         }
       };
       if (subscription == null) {
-        subscription = bloc.listenNavigation(navigateTo);
+        subscription = bloc.navigationStream.listen(navigateTo);
       } else {
         subscription.onData(navigateTo);
       }
