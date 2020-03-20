@@ -49,6 +49,8 @@ abstract class Bloc {
     return false;
   }
 
+  bool containsState<S>() => _store.containsKey(S);
+
   S initialState<S>() => _store[S].initialState;
 
   Stream<RouteData> get navigationStream => _navigationControllerWrapper.stream;
