@@ -86,7 +86,7 @@ class _BlocProviderState<B extends Bloc> extends State<BlocProvider<B>>
   @override
   void dispose() {
     unsubscribe();
-    _bloc?.dispose();
+    _bloc?.close();
     super.dispose();
   }
 

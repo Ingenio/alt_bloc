@@ -8,9 +8,13 @@ abstract class Bloc {
   final _store = _StateHoldersStore();
   final _navigationControllerWrapper = _NavigationStreamControllerWrapper(
       StreamController<RouteData>.broadcast());
+  bool _isClosed = false;
 
   @protected
   Future<Result> addNavigation<Result>({String routeName, dynamic arguments}) {
+    if (isClosed) {
+      return null;
+    }
     final resultCompleter = Completer<Result>();
     _navigationControllerWrapper.add(
         RouteData<Result>(RouteSettings(name: routeName, arguments: arguments),
@@ -25,13 +29,20 @@ abstract class Bloc {
     return resultCompleter.future;
   }
 
-  void dispose() {
+  bool get isClosed => _isClosed;
+
+  void close() {
+    _isClosed = true;
     _store.forEach((_, holder) => holder.controller.close());
+    _store.clear();
     _navigationControllerWrapper.close();
   }
 
   @protected
   void registerState<S>({bool isBroadcast = false, S initialState}) {
+    if (isClosed) {
+      throw StateError('This bloc was closed. You can\'t register state for closed bloc');
+    }
     _store[S] = _StateHolder<S>(
         isBroadcast ? StreamController<S>.broadcast() : StreamController<S>(),
         initialState: initialState);
@@ -39,16 +50,14 @@ abstract class Bloc {
 
   @protected
   bool addState<S>(S uiState) {
-    // ignore: close_sinks
-    final controller = _store[S].controller;
-    if (!controller.isClosed) {
-      controller.sink.add(uiState);
-      return true;
+    if (isClosed) {
+      return false;
     }
-    return false;
+    _store[S].controller.sink.add(uiState);
+    return true;
   }
 
-  bool containsState<S>() => _store.containsKey(S);
+  bool containsState<S>() => isClosed ? false : _store.containsKey(S);
 
   S initialState<S>() => _store[S].initialState;
 
@@ -62,8 +71,8 @@ abstract class Bloc {
       void Function() onDone,
       void Function(dynamic error) onError}) {
     // ignore: close_sinks
-    StreamController<S> controller = _store[S].controller;
-    return controller.addSource(source,
+    StreamController<S> controller = isClosed ? null : _store[S].controller;
+    return controller?.addSource(source,
         onData: onData, onDone: onDone, onError: onError);
   }
 
@@ -80,7 +89,7 @@ abstract class Bloc {
       {void Function(RouteData data) onData,
       void Function() onDone,
       void Function(dynamic error) onError}) {
-    return _navigationControllerWrapper._streamController
+    return isClosed ? null : _navigationControllerWrapper._streamController
         .addSource(source, onData: onData, onDone: onDone, onError: onError);
   }
 }
@@ -109,10 +118,8 @@ extension _BlocStreamController<T> on StreamController<T> {
       void Function() onDone,
       void Function(dynamic error) onError}) {
     return _ImmutableStreamSubscription(source.listen((T data) {
-      if (!isClosed) {
-        sink.add(data);
-        onData?.call(data);
-      }
+      sink.add(data);
+      onData?.call(data);
     })
       ..onDone(onDone)
       ..onError(onError));
