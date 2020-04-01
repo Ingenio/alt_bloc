@@ -5,9 +5,11 @@ import 'navigation_subscriber.dart';
 import 'precondition.dart';
 import 'router.dart';
 
+/// Signature of predicate function that use to compare [Bloc] objects.
 typedef UpdateShouldNotify<T> = bool Function(T previous, T current);
 
-/// InheritedWidget that responsible for providing Bloc instance.
+/// [InheritedWidget] that encapsulated by [BlocProvider] and allow [BlocProvider.child] widgets tree to obtain the
+/// [Bloc] object.
 class Provider<B extends Bloc> extends InheritedWidget {
   const Provider._({Key key, @required B bloc, Widget child, this.shouldNotify})
       : assert(bloc != null),
@@ -24,6 +26,10 @@ class Provider<B extends Bloc> extends InheritedWidget {
         : oldWidget.bloc != bloc;
   }
 
+  /// Static function that returns [Bloc] of type `B`.
+  ///
+  /// If [listen] defines as `true`, each time when [Bloc] object changes, this [context] is rebuilt. Custom
+  /// Blocs comparison rules could be defined in [BlocProvider.shouldNotify] function.
   static B of<B extends Bloc>(BuildContext context, {bool listen = false}) {
     final Provider<B> provider = listen
         ? context.dependOnInheritedWidgetOfExactType<Provider<B>>()
@@ -34,7 +40,15 @@ class Provider<B extends Bloc> extends InheritedWidget {
   }
 }
 
-/// Widget that responsible for creation of Bloc, should be placed in root of UI widgets tree.
+/// [Widget] that responsible to create the [Bloc] with help of [create] function. Accepts any [Widget] as child and
+/// provides the ability for child to obtain the [Bloc].
+///
+/// Function [shouldNotify] define whether that widgets that inherit from this widget should be rebuilt if [Bloc] was
+/// changed.
+///
+/// [BlocProvider] could subscribe on [Bloc.navigationStream] and receives navigation events if [route] function will
+/// be defined, similar as [RouteListener].
+
 class BlocProvider<B extends Bloc> extends StatefulWidget {
   const BlocProvider({
     Key key,
@@ -63,7 +77,7 @@ class _BlocProviderState<B extends Bloc> extends State<BlocProvider<B>>
 
   @override
   void initState() {
-    _bloc ??= widget.create();
+    _bloc = widget.create();
     subscribe();
     super.initState();
   }
