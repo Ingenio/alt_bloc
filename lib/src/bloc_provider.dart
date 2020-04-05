@@ -46,7 +46,7 @@ class Provider<B extends Bloc> extends InheritedWidget {
 /// Function [shouldNotify] define whether that widgets that inherit from this widget should be rebuilt if [Bloc] was
 /// changed.
 ///
-/// [BlocProvider] could subscribe on [Bloc.navigationStream] and receives navigation events if [route] function will
+/// [BlocProvider] could subscribe on [Bloc.navigationStream] and receives navigation events if [router] function will
 /// be defined, similar as [RouteListener].
 
 class BlocProvider<B extends Bloc> extends StatefulWidget {

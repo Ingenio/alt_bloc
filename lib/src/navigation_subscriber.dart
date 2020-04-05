@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:alt_bloc/src/precondition.dart';
 import 'package:flutter/widgets.dart';
 
 import 'bloc.dart';
+import 'precondition.dart';
 import 'router.dart';
 
 mixin NavigationSubscriber<B extends Bloc, T extends StatefulWidget>

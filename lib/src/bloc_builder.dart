@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:alt_bloc/alt_bloc.dart';
 import 'package:flutter/widgets.dart';
 
 import 'bloc.dart';
@@ -12,7 +11,7 @@ typedef BlocWidgetBuilder<S> = Widget Function(BuildContext context, S state);
 
 /// [Widget] that accept [Bloc] of type `B` and subscribes on states stream of type `S`.
 ///
-/// If [Bloc] was not provided, so [Provider<B>.of(context)] uses by default.
+/// If [Bloc] was not provided, so [Provider.of] uses by default.
 /// Function [builder] calls each time when new state was added to stream and returns Widget depending on state.
 /// [precondition] allow to filter stats that will be delivered to [builder].
 class BlocBuilder<B extends Bloc, S> extends BlocHolder<B> {
