@@ -14,6 +14,14 @@ typedef BlocWidgetBuilder<S> = Widget Function(BuildContext context, S state);
 /// If [Bloc] was not provided, so [Provider.of] uses by default.
 /// Function [builder] calls each time when new state was added to stream and returns Widget depending on state.
 /// [precondition] allow to filter stats that will be delivered to [builder].
+///
+/// ```dart
+/// BlocBuilder<CounterBloc, int>(
+///     bloc: CounterBloc(),
+///     precondition: (prevCount, count) => count % 2 == 0,
+///     builder: (_, count) => Text('$count');
+/// )
+/// ```
 class BlocBuilder<B extends Bloc, S> extends BlocHolder<B> {
   final BlocWidgetBuilder<S> builder;
   final Precondition<S> precondition;

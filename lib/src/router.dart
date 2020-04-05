@@ -14,6 +14,28 @@ typedef Router<Result> = Future<Result> Function(
 ///
 /// **WARNING!!!** Potentially few [RouteListener] widgets could be subscribed on the same stream, so same navigation
 /// event could be handled several times. We recommend to use [precondition] to avoid such situation.
+///
+/// ```dart
+/// RouteListener<CounterBloc>(
+///   bloc: CounterBloc(),
+///   child: CounterLayout(title: 'Bloc Demo Home Page'),
+///   precondition: (prevSettings, settings) => (settings.arguments as int) % 5 == 0,
+///   router: (context, name, args) {
+///     return showDialog(
+///         context: context,
+///         builder: (_) {
+///           return WillPopScope(
+///               child: AlertDialog(
+///                 title: Text('Congratulations! You clicked $args times'),
+///               ),
+///               onWillPop: () async {
+///                 Navigator.of(context).pop('Dialog with $args clicks has been closed');
+///                 return false;
+///               });
+///         });
+///   },
+/// )
+/// ```
 class RouteListener<B extends Bloc> extends BlocHolder<B> {
 
   const RouteListener(

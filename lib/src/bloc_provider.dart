@@ -48,6 +48,35 @@ class Provider<B extends Bloc> extends InheritedWidget {
 ///
 /// [BlocProvider] could subscribe on [Bloc.navigationStream] and receives navigation events if [router] function will
 /// be defined, similar as [RouteListener].
+/// ```dart
+/// class CounterScreen extends StatelessWidget {
+///
+///   @override
+///   Widget build(BuildContext context) {
+///     return BlocProvider<CounterBloc>(
+///       routerPrecondition: (prevSettings, settings) => (settings.arguments as int) % 5 == 0,
+///       create: () => CounterBloc(),
+///       child: CounterLayout(title: 'Bloc Demo Home Page'),
+///       router: (context, name, args) {
+///         return showDialog(
+///             context: context,
+///             builder: (_) {
+///               return WillPopScope(
+///                   child: AlertDialog(
+///                     title: Text('Congratulations! You clicked $args times'),
+///                   ),
+///                   onWillPop: () async {
+///                     Navigator.of(context).pop('Dialog with $args clicks has been closed');
+///                     return false;
+///                   }
+///               );
+///             }
+///         );
+///       },
+///     );
+///   }
+/// }
+/// ```
 
 class BlocProvider<B extends Bloc> extends StatefulWidget {
   const BlocProvider({
