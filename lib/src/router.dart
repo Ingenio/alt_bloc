@@ -1,8 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'bloc.dart';
-import 'bloc_holder.dart';
-import 'navigation_subscriber.dart';
+import 'bloc_widget.dart';
 import 'precondition.dart';
 
 /// Signature of function that use to listen for navigation events and return navigation result.
@@ -19,7 +18,7 @@ typedef Router<Result> = Future<Result> Function(
 /// RouteListener<CounterBloc>(
 ///   bloc: CounterBloc(),
 ///   child: CounterLayout(title: 'Bloc Demo Home Page'),
-///   precondition: (prevSettings, settings) => (settings.arguments as int) % 5 == 0,
+///   precondition: (prevData, data) => (data.settings.arguments as int) % 5 == 0,
 ///   router: (context, name, args) {
 ///     return showDialog(
 ///         context: context,
@@ -36,43 +35,36 @@ typedef Router<Result> = Future<Result> Function(
 ///   },
 /// )
 /// ```
-class RouteListener<B extends Bloc> extends BlocHolder<B> {
-
+class RouteListener<B extends Bloc> extends BlocWidget<B, RouteData> {
   const RouteListener(
-      {Key key, @required this.child, this.router, B bloc, this.precondition})
+      {Key key,
+      @required this.child,
+      @required this.router,
+      B bloc,
+      Precondition<RouteData> precondition})
       : assert(child != null),
-        super(key: key, bloc: bloc);
+        assert(router != null),
+        super(key: key, bloc: bloc, precondition: precondition);
 
   final Router router;
   final Widget child;
-  final Precondition<RouteSettings> precondition;
 
   @override
   State<StatefulWidget> createState() => _RouteListenerState<B>();
 }
 
 class _RouteListenerState<B extends Bloc>
-    extends BlocHolderState<B, RouteListener<B>>
-    with NavigationSubscriber<B, RouteListener<B>> {
-  @override
-  void initState() {
-    super.initState();
-    subscribe();
-  }
-
-  @override
-  Future<void> onBlocChanged(B bloc) async {
-    super.onBlocChanged(bloc);
-    unsubscribe();
-    subscribe();
-  }
-
+    extends BlocWidgetState<B, RouteData, RouteListener<B>> {
   @override
   Widget build(BuildContext context) => widget.child;
 
   @override
-  get precondition => widget.precondition;
+  void onNewState(RouteData state) {
+    final result =
+        widget.router(context, state.settings.name, state.settings.arguments);
+    state.resultConsumer(result);
+  }
 
   @override
-  Router get router => widget.router;
+  Stream<RouteData> get stream => bloc.navigationStream;
 }

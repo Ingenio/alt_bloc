@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'bloc.dart';
-import 'navigation_subscriber.dart';
+import 'bloc_widget.dart';
 import 'precondition.dart';
 import 'router.dart';
 
@@ -78,43 +78,35 @@ class Provider<B extends Bloc> extends InheritedWidget {
 /// }
 /// ```
 
-class BlocProvider<B extends Bloc> extends StatefulWidget {
+class BlocProvider<B extends Bloc> extends BlocSubscriber<B, RouteData> {
   const BlocProvider({
     Key key,
     @required this.child,
     @required this.create,
     this.router,
     this.shouldNotify,
-    this.routerPrecondition,
+    Precondition<RouteData> routerPrecondition,
   })  : assert(child != null),
         assert(create != null),
-        super(key: key);
+        super(key: key, precondition: routerPrecondition);
 
   final B Function() create;
   final Widget child;
   final Router router;
-  final Precondition<RouteSettings> routerPrecondition;
   final UpdateShouldNotify<B> shouldNotify;
 
   @override
   _BlocProviderState<B> createState() => _BlocProviderState<B>();
 }
 
-class _BlocProviderState<B extends Bloc> extends State<BlocProvider<B>>
-    with NavigationSubscriber<B, BlocProvider<B>> {
+class _BlocProviderState<B extends Bloc>
+    extends BlocSubscriberState<B, RouteData, BlocProvider<B>> {
   B _bloc;
 
   @override
   void initState() {
     _bloc = widget.create();
-    subscribe();
     super.initState();
-  }
-
-  @override
-  void didUpdateWidget(BlocProvider<B> oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    subscribe();
   }
 
   @override
@@ -127,18 +119,19 @@ class _BlocProviderState<B extends Bloc> extends State<BlocProvider<B>>
   }
 
   @override
-  void dispose() {
-    unsubscribe();
-    _bloc?.close();
-    super.dispose();
+  Stream<RouteData> get stream =>
+      widget.router == null ? null : _bloc.navigationStream;
+
+  @override
+  void onNewState(RouteData state) {
+    final result =
+        widget.router(context, state.settings.name, state.settings.arguments);
+    state.resultConsumer(result);
   }
 
   @override
-  get precondition => widget.routerPrecondition;
-
-  @override
-  B get bloc => _bloc;
-
-  @override
-  get router => widget.router;
+  void dispose() {
+    _bloc?.close();
+    super.dispose();
+  }
 }
