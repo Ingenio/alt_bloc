@@ -6,6 +6,11 @@ import 'precondition.dart';
 
 typedef Consumer<T> = void Function(T state);
 
+
+/// [Widget] that accept [Bloc] of type `B` and subscribes on states stream of type `S`.
+///
+/// If [Bloc] was not provided, so [Provider.of] uses by default.
+/// [consumer] function will be triggered each time on new state.
 class BlocConsumer<B extends Bloc, S> extends BlocWidget<B, S> {
   const BlocConsumer(
       {Key key,
