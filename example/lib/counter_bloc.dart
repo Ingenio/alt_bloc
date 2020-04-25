@@ -10,7 +10,7 @@ class CounterBloc extends Bloc {
 
   void increment() {
     addState<bool>(true);
-    addFutureSource<int>(repo.increment(),
+    addStateSource<int>(repo.increment(),
         onData: (count) async {
           print(await addNavigation(arguments: count));
         },

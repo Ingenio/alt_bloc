@@ -22,147 +22,109 @@ P.S. We highly respect the authors and developers of [bloc](https://pub.dev/pack
 ## Main Features
 - Public interfaces of **alt_bloc** are similar to interfaces of popular libraries like **Provider** and **BLoC**. So you do not need to spend lots of time to learn how set up this library.
 - Support multi states. You can create few states per **Bloc** and you don't need to create hierarchy of states that inherited from one parent state, especially if such states are on different levels of abstraction.
+- Support `Stream` and `Future` objects as states provider.
 - Provides separate pipes to handle navigation actions.
+- Contains solution to receive result of navigation in the Bloc object.
 - Lightweight solution. The overall package is very small and it doesn't contains any third party libraries.
 
 ## Components
 #### Bloc
-**Bloc** it is a layer that implements the core business logic. Bloc accepts UI actions from the widget and in return notifies the widget's layout about changes in UI state in order to initiate navigation actions.
+
+Business Logic Component.
+
+The class that implements the core business logic, and that should be placed between UI and data source. BLoC accepts UI actions from the widget and in return notifies the widget's about changes in UI state or initiate navigation actions.
+
+This class implements methods that improve and simplify process of delivering business-logic states changes and navigation actions to widgets.
+
+Current solution contains methods to register states that you want to provide to widgets (`registerState()`), send this states (`addState()`, `addStateSource()`, `addStatesSource()`) and navigation actions (`addNavigation()`, `addNavigationSource()`).
+
+```dart
+class CounterBloc extends Bloc {
+ int value = 0;
+
+ CounterBloc() {
+   registerState<int>(initialState: value);
+ }
+
+ void increment() => addState(++value);
+}
+```
+
+Widgets should use `getStateStream()` and `navigationStream` property to subscribe on `Bloc` events.
 
 `abstract class Bloc`
 
-`Future<Result> addNavigation<Result>({String routeName, dynamic arguments})` - notifies **BlocProvider** or **RouteListener** about new navigation state. And returns Future that could completes with result value passed to **Navigator.pop** of route that will be pushed in result of this method invokation. But only in case if Router that subscribed on this navigation will return result of **Navigator.push**, **showDialog**, etc.
-
-`void registerState<S>({bool isBroadcast = false, S initialState})` - must be called before adding states using **addState**. **ArgumentError** will be thrown if such state have been registered before.
-
-  * `isBroadcast` - optional, should be true if you want to listen to current states in many places at the same time. 
-
-  * `initialState` - optional, value of UI state that will be returned by default.
-
-`bool addState<S>(S uiState)` - notify all state listeners (**BlocBuilder**, etc.) that subscribed on **S** state about new state. If such state was not registered before **ArgumentError** will be thrown.
-
-`S initialState<S>()` - returns initial state of **S** type. If such state was not registered before **ArgumentError** will be thrown.
-
-`StreamSubscription<S> listenState<S>(void onData(S state))` - method that provide possibility subscribe on states of **S** type. If such state was not registered before **ArgumentError** will be thrown.
+`void registerState<S>({bool isBroadcast = false, S initialState})` - registers state of `S` type
+ that can be processed by this `Bloc`.Creates stream and all necessary resources that need to process state of `S` type. `isBroadcast` define type of stream that will be created. You can pass object that will define `initialState`. Throws `StateError` if this method was called twice for the same type or if this `Bloc` was closed.
  
-`StreamSubscription<RouteData> listenNavigation(void onData(RouteData state))` - method that provide possibility subscribe on navigation that described by **RouteData** class.
- 
-`StreamSubscription<S> addStreamSource<S>(Stream<S> source,
-       {void Function(S data) onData,
-       void Function() onDone,
-       void Function(dynamic error) onError})` - method provide possibility pass stream as states provider and  all listeners that subscribed on **S** state will receive source stream events. Returns **StreamSubscription** on source stream. If such state was not registered before **ArgumentError** will be thrown. 
-             
-       
-`StreamSubscription<S> addFutureSource<S>(Future<S> source,
+`S initialState<S>()` - returns initial value for state of `S` type. Returns `null` if this `Bloc` was closed. Throws `ArgumentError` if state of such type was not registered.
+
+`bool containsState<S>()` - checks whether a state of `S` type was registered before. Returns `false` if this `Bloc` was closed.
+
+`isClosed` - Defines whether that `Bloc` was closed.
+
+`bool addState<S>(S uiState)` - adds state of `S` type to the stream that corresponding to state type. Returns false if this `Bloc` was closed and state was not added to the stream. Throws `ArgumentError` if state of such type was not registered.
+
+`StreamSubscription<S> addStateSource<S>(Future<S> source,
            {void Function(S data) onData,
            void Function() onDone,
-           void Function(dynamic error) onError})` - method provide possibility pass future as state provider and all listeners that subscribed on **S** state will receive Future result event. Returns **StreamSubscription** on source future. If such state was not registered before **ArgumentError** will be thrown.
+           void Function(dynamic error) onError})` - adds `Future` that should be returned by state of `S` type as source of state. Callbacks `onData`, `onDone`, `onError` provide possibility to handle `source`. Throws `ArgumentError` if state of such type was not registered. Returns `StreamSubscription` that provide possibility to pause, resume or cancel `source`.
+           
+`StreamSubscription<S> addStatesSource<S>(Stream<S> source,
+       {void Function(S data) onData,
+       void Function() onDone,
+       void Function(dynamic error) onError})` - adds `Stream` that should be returned by state of `S` type as source of state. Callbacks `onData`, `onDone`, `onError` provide possibility to handle `source`. Throws `ArgumentError` if state of such type was not registered. Returns `StreamSubscription` that provide possibility to pause, resume or cancel `source`.           
+           
+`Future<Result> addNavigation<Result>({String routeName, dynamic arguments})` - adds navigation data to `navigationStream`. Method arguments wrap with `RouteData` object and pass to `navigationStream`. Returns a `Future` that completes to the result value when `RouteData.resultConsumer` function will be called. `RouteData.resultConsumer` can be called once and only once, otherwise `StateError` will be thrown. The 'Result' type argument is the type of the return value.
+
+`StreamSubscription<RouteData> addNavigationSource(Stream<RouteData> source,
+      {void Function(RouteData data) onData,
+        void Function() onDone,
+        void Function(dynamic error) onError})` - adds `Stream` of `RouteData` as navigation events source. Callbacks `onData`, `onDone`, `onError` help to handle `source`. Returns `StreamSubscription` that provide possibility to pause, resume or cancel `source`. Preferable to use this method for aggregation of blocs.
+ ```dart
+ class ConnectionBloc extends Bloc {
+  
+   void startCall(Contact contact) async { ... }
+  
+   void startChat(Contact contact) async { ... }
+ }
+  
+ class ContactsBloc extends Bloc implements ConnectionBloc {
+   ContactsBloc(this._connectionBloc) {
+      addNavigationSource(_connectionBloc.navigationStream);
+   }
+ 
+   final ConnectionBloc _connectionBloc;
+ 
+   @override
+   void startCall(Contact contact) => _connectionBloc.startCall(contact);
+ 
+   @override
+   void startChat(Contact contact) => _connectionBloc.startChat(contact);
+ 
+   ...
+ }
+ ```
+
+`Stream<S> getStateStream<S>()` - returns states stream according to type `S`. Returns `null` if this `Bloc` was closed. Throws `ArgumentError` if state of such type was not registered.
+
+`navigationStream` - returns navigation stream. Returns `null` if this `Bloc` was closed.
+
+`void close()` - Releases resources and closes streams.
+
+
+#### RouteData 
+The class that contains all information about navigation.
+
+
+#### ResultConsumer
+Signature of callback that use to return navigation result to the `Bloc`.
+
 
 #### BlocProvider
-**BlocProvider** is a **StatefulWidget** and is responsible to build the UI (child) part, providing the ability for this child to obtain the **Bloc** and also to enable the **BlocProvider** for receiving navigation events in **Router**.
-
-`class BlocProvider<B extends Bloc> extends StatefulWidget`
-
-`const BlocProvider({Key key, @required B Function() create, @required Widget child, Router router, UpdateShouldNotify<B> shouldNotify})` - constructor that accept:
-  * `create` - function that implements the **Bloc** creation process.
-  * `child` - accept any **Widget**.
-  * `router` - optional callback function that will receive navigation states from **Bloc**.
-  * `shouldNotify` - optional predicate function that define whether the descendant widgets should be rebuilt in case  **BlocProvider** gets rebuilt.
-  
-#### Router
-`typedef Router<Result> = Future<Result> Function(BuildContext context, String name, dynamic args);` - function that is responsible for receiving and handling navigation events. This function will be called each time when **Bloc.addNavigation** was invoked. It's play role of data source that returns result of **Navigator.push**, **showDialog**, etc. to **Bloc**.
- 
-#### RouteListener
-**RouteListener** is a **StatefulWidget** and is responsible to listen for **Bloc** navigation events and handle it.
-
-`class RouteListener<B extends Bloc>`
-
-`const RouteListener({Key key, @required Widget child, Router router, B bloc, Precondition<RouteSettings> precondition precondition})`
-     
-#### Provider
-**Provider** is an **InheritedWidget**. **Provider** is responsible for obtaining a **Bloc** instance into the widget layout (Dependency injection). **Provider** has a static method **of()**. This method returns **Bloc** from nearest **BlocProvider**.
-
-`class Provider<B extends Bloc> extends InheritedWidget`
-`static B of<B extends Bloc>(BuildContext context, {bool listen = false})`
-  * `listen` - define whether descendant widgets tree should be rebuilt in case of BlocProvider being rebuilt.
-
-#### BlocBuilder
-**BlocBuilder** based on **StatefulWidget** that has builder function with state. **BlocBuilder** automatically finds the **Bloc** with the help of **Provider** and subscribes to **Bloc** updates. The stream for this widget is obtained by state type.
-`class BlocBuilder<B extends Bloc, US> extends StatefulWidget`
-`const BlocBuilder({Key key, B bloc, @required BlocWidgetBuilder<S> builder, Precondition<S> precondition})`
-  * `bloc` - optional parameter, Provider.of() result will be used by default. 
-  * `builder` - required function that builds the UI based on the UI state.
-  * `precondition` - optional function that define condition for call **builder** function.
-  
-  
-  
-## Usage
-
-#### Simple **Bloc** implementation.
-You should register all states that will be used by Bloc with the help of the `registerState<T>()` method. To notify **Widget** about changes you should call `addState<T>(T_object);`. 
-**WARNING!!!** If you try to call `addState<T>()` method before `registerState<T>()` an error will be thrown.
-
-If you want to send some navigation events, you need to call `addNavigation({String routeName, dynamic arguments})` method.
-
-```dart
-class CounterBloc extends Bloc {
-
-  var _counter = 0;
-
-  CounterBloc() {
-    registerState<int>(initialState: 10);
-    registerState<bool>(initialState: false);
-  }
-
-  void increment() {
-    addState<bool>(true);
-    // delay simulation
-    Future.delayed(const Duration(milliseconds: 500), () {
-      addState<bool>(false);
-      addState<int>(++_counter);
-      if ((_counter % 10) == 0) {
-        addNavigation(arguments: _counter);
-      }
-    });
-  }
-}
-```
-
-If you have some Future or Stream that contains state objects you can pass it as state source 
-with help `addStreamSource<S>(Stream<S> source)` and `addFutureSource<S>(Future<S> source)` 
-functions.
-For example we have some repository that return Future with incrementation result.
-
-```dart
-class IncrementRepo {
-  int _counter = 0;
-
-  Future<int> increment() => Future.delayed(const Duration(seconds: 1), () => ++_counter);
-
-  Future<int> decrement() => Future.delayed(const Duration(seconds: 5), () => --_counter);
-} 
-
-class CounterBloc extends Bloc {
-  final repo = IncrementRepo();
-
-  CounterBloc() {
-    registerState<int>(initialState: 0);
-    registerState<bool>(initialState: false);
-  }
-
-  void increment() {
-      addState<bool>(true);
-      addFutureSource<int>(repo.increment(),
-          onData: (count) async {
-            print('Dialog result: ${await addNavigation(arguments: count)}');
-          },
-          onDone: () => addState<bool>(false));
-    }
-}
-```
-
-#### **BlocProvider**. 
-`create` function responsible for the Bloc creation.
+`Widget` that responsible to create the `Bloc` with help of `create` function. Accepts any `Widget` as child and provides the ability for child to obtain the `Bloc`.
+Function `shouldNotify` define whether that widgets that inherit from this widget should be rebuilt if `Bloc` was changed.
+`BlocProvider` could subscribe on `Bloc.navigationStream` and receives navigation events if `router` function will be defined, similar as `RouteListener`.
 
 ```dart
 class CounterScreen extends StatelessWidget {
@@ -170,20 +132,23 @@ class CounterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<CounterBloc>(
+      routerPrecondition: (prevRouteData, routeData) => (routeData.settings.arguments as int) % 5 == 0,
       create: () => CounterBloc(),
-      routerPrecondition: (_, settings) => (settings.arguments as int) % 5 == 0,
       child: CounterLayout(title: 'Bloc Demo Home Page'),
       router: (context, name, args) {
         return showDialog(
-          context: context,
-          builder: (_) => WillPopScope(
-                          child: AlertDialog(
-                            title: Text('Congratulations! You clicked $args times'),
-                          ),
-                          onWillPop: () async {
-                            Navigator.of(context).pop(args);
-                            return false;
-                          })
+            context: context,
+            builder: (_) {
+              return WillPopScope(
+                  child: AlertDialog(
+                    title: Text('Congratulations! You clicked $args times'),
+                  ),
+                  onWillPop: () async {
+                    Navigator.of(context).pop('Dialog with $args clicks has been closed');
+                    return false;
+                  }
+              );
+            }
         );
       },
     );
@@ -191,81 +156,71 @@ class CounterScreen extends StatelessWidget {
 }
 ```
 
-#### Navigation handling.
-You could handle navigation with the help of `router` as shown in the example above. Or you can use **RoutreListener**.
+
+#### Provider
+`InheritedWidget` that encapsulated by `BlocProvider` and allow `BlocProvider.child` widgets tree to obtain the `Bloc` object.
+`static B of<B extends Bloc>(BuildContext context, {bool listen = false})` - static function that returns `Bloc` of type `B`. If `listen` defines as `true`, each time when `Bloc` object changes, this `context` is rebuilt. Custom `Bloc` comparison rules could be defined in `BlocProvider.shouldNotify` function.
+
+
+#### BlocBuilder
+`Widget` that accept `Bloc` of type `B` and subscribes on states stream of type `S`. If `Bloc
+` was not provided, so `Provider.of` uses by default. 
+Function `builder` calls each time when new state was added to stream and returns `Widget` depending on state. `precondition` allow to filter stats that will be delivered to `builder`.
 
 ```dart
-class CounterScreen extends StatelessWidget {
+BlocBuilder<CounterBloc, int>(
+    bloc: CounterBloc(),
+    precondition: (prevCount, count) => count % 2 == 0,
+    builder: (_, count) => Text('$count');
+)
+```
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider<CounterBloc>(
-      create: () => CounterBloc(),
-      child: RouteListener<CounterBloc>(
-        child: CounterLayout(title: 'Bloc Demo Home Page'),
-        router: (context, name, args) {
-          return showDialog(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: Text('Congratulations! You clicked $args times'),
-            ),
-          );
+#### BlocConsumer
+`Widget` that accept `Bloc` of type `B` and subscribes on states stream of type `S`. If `Bloc` was not provided, so `Provider.of` uses by default.
+`consumer` function will be triggered each time on new state.
+
+  
+#### RouteListener
+`Widget` that subscribes on `Bloc.navigationStream`, listen for navigation actions and handle them. If `bloc` was not provided `Provider.of` will be used by default. 
+`router` function will be triggered each time on new state and returns navigation result to the
+ `Bloc`.
+
+**WARNING!!!** Potentially few `RouteListener` widgets could be subscribed on the same stream, so same navigation event could be handled several times. We recommend to use `precondition` to avoid such situation.
+
+```dart
+RouteListener<CounterBloc>(
+  bloc: CounterBloc(),
+  child: CounterLayout(title: 'Bloc Demo Home Page'),
+  precondition: (prevData, data) => (data.settings.arguments as int) % 5 == 0,
+  router: (context, name, args) {
+    return showDialog(
+        context: context,
+        builder: (_) {
+          return WillPopScope(
+              child: AlertDialog(
+                title: Text('Congratulations! You clicked $args times'),
+              ),
+              onWillPop: () async {
+                // Argument that Navigator.pop() function will be returned to the Bloc     
+                Navigator.of(context).pop('Dialog with $args clicks has been closed');
+                return false;
+              });
+        });
+  },
+)
+
+class CounterBloc extends Bloc {
+
+  ...
+  void increment() {
+    addState<bool>(true);
+    addStateSource<int>(repo.increment(),
+        onData: (count) async {
+          // print String that was passed to Navigator.pop()
+          print(await addNavigation(arguments: count));
         },
-      ),
-    );
+        onDone: () => addState<bool>(false));
   }
+  ...
 }
-```
-
-#### Providing and observing **Bloc** on UI.
-
-```dart
-class CounterLayout extends StatelessWidget {
-
-  CounterLayout({Key key, this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-      ),
-      body: Stack(
-        children: <Widget>[
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text(
-                  'You have pushed the button this many times:',
-                ),
-                BlocBuilder<CounterBloc, int>(
-                    builder: (_, count) {
-                      return Text(
-                        '$count',
-                        style: Theme.of(context).textTheme.display1,
-                      );
-                    }),
-              ],
-            ),
-          ),
-          Center(
-            child: BlocBuilder<CounterBloc, bool>(
-              builder: (_, inProgress) {
-                return inProgress ? CircularProgressIndicator() : Container();
-              }
-            ),
-          )
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: Provider.of<CounterBloc>(context).increment,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ),
-    );
-  }
-}
-```
+``` 
