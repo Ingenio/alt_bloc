@@ -186,7 +186,7 @@ abstract class Bloc {
   Stream<RouteData> get navigationStream => isClosed ? null : _navigationControllerWrapper.stream;
 
   /// Releases resources and closes streams.
-  void close() {
+  void dispose() {
     _isClosed = true;
     _store.forEach((_, holder) => holder.controller.close());
     _store.clear();
