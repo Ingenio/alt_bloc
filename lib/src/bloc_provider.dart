@@ -131,7 +131,7 @@ class _BlocProviderState<B extends Bloc>
 
   @override
   void dispose() {
-    _bloc?.close();
+    _bloc?.dispose();
     super.dispose();
   }
 }
