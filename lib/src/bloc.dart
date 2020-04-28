@@ -33,7 +33,7 @@ abstract class Bloc {
   final _store = _StateHoldersStore();
   final _navigationControllerWrapper = _NavigationStreamControllerWrapper(
       StreamController<RouteData>.broadcast());
-  bool _isClosed = false;
+  bool _isDisposed = false;
 
   /// Registers state of `S` type that can be processed by this [Bloc].
   ///
@@ -43,7 +43,7 @@ abstract class Bloc {
   /// Throws [StateError] if this method was called twice for the same type or if this [Bloc] was closed.
   @protected
   void registerState<S>({bool isBroadcast = false, S initialState}) {
-    if (isClosed) {
+    if (isDisposed) {
       throw StateError('This bloc was closed. You can\'t register state for closed bloc');
     }
     _store[S] = _StateHolder<S>(
@@ -55,15 +55,15 @@ abstract class Bloc {
   ///
   /// Returns `null` if this [Bloc] was closed.
   /// Throws [ArgumentError] if state of such type was not registered.
-  S initialState<S>() => isClosed ?  null : _store[S].initialState;
+  S initialState<S>() => isDisposed ?  null : _store[S].initialState;
 
   /// Checks whether a state of `S` type was registered before.
   ///
   /// Returns `false` if this [Bloc] was closed.
-  bool containsState<S>() => isClosed ? false : _store.containsKey(S);
+  bool containsState<S>() => isDisposed ? false : _store.containsKey(S);
 
   /// Defines whether that [Bloc] was closed.
-  bool get isClosed => _isClosed;
+  bool get isDisposed => _isDisposed;
 
   /// Adds state of `S` type to the stream that corresponding to state type.
   ///
@@ -71,7 +71,7 @@ abstract class Bloc {
   /// Throws [ArgumentError] if state of such type was not registered.
   @protected
   bool addState<S>(S uiState) {
-    if (isClosed) {
+    if (isDisposed) {
       return false;
     }
     _store[S].controller.sink.add(uiState);
@@ -105,7 +105,7 @@ abstract class Bloc {
         void Function() onDone,
         void Function(dynamic error) onError}) {
     // ignore: close_sinks
-    StreamController<S> controller = isClosed ? null : _store[S].controller;
+    StreamController<S> controller = isDisposed ? null : _store[S].controller;
     return controller?.addSource(source,
         onData: onData, onDone: onDone, onError: onError);
   }
@@ -118,7 +118,7 @@ abstract class Bloc {
   /// The 'Result' type argument is the type of the return value.
   @protected
   Future<Result> addNavigation<Result>({String routeName, dynamic arguments}) {
-    if (isClosed) {
+    if (isDisposed) {
       return null;
     }
     final resultCompleter = Completer<Result>();
@@ -169,7 +169,7 @@ abstract class Bloc {
       {void Function(RouteData data) onData,
         void Function() onDone,
         void Function(dynamic error) onError}) {
-    return isClosed ? null : _navigationControllerWrapper._streamController
+    return isDisposed ? null : _navigationControllerWrapper._streamController
         .addSource(source, onData: onData, onDone: onDone, onError: onError);
   }
 
@@ -178,16 +178,16 @@ abstract class Bloc {
   /// Returns `null` if this [Bloc] was closed.
   ///
   /// Throws [ArgumentError] if state of such type was not registered.
-  Stream<S> getStateStream<S>() => isClosed ? null : _store[S].controller.stream;
+  Stream<S> getStateStream<S>() => isDisposed ? null : _store[S].controller.stream;
 
   /// Returns navigation stream.
   ///
   /// Returns `null` if this [Bloc] was closed.
-  Stream<RouteData> get navigationStream => isClosed ? null : _navigationControllerWrapper.stream;
+  Stream<RouteData> get navigationStream => isDisposed ? null : _navigationControllerWrapper.stream;
 
   /// Releases resources and closes streams.
   void dispose() {
-    _isClosed = true;
+    _isDisposed = true;
     _store.forEach((_, holder) => holder.controller.close());
     _store.clear();
     _navigationControllerWrapper.close();
