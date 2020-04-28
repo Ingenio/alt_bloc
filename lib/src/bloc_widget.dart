@@ -65,7 +65,6 @@ abstract class BlocWidget<B extends Bloc, S> extends BlocSubscriber<B, S> {
 
 abstract class BlocWidgetState<B extends Bloc, S, T extends BlocWidget<B, S>>
     extends BlocSubscriberState<B, S, T> {
-
   B bloc;
 
   @override

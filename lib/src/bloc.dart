@@ -44,7 +44,8 @@ abstract class Bloc {
   @protected
   void registerState<S>({bool isBroadcast = false, S initialState}) {
     if (isDisposed) {
-      throw StateError('This bloc was closed. You can\'t register state for closed bloc');
+      throw StateError(
+          'This bloc was closed. You can\'t register state for closed bloc');
     }
     _store[S] = _StateHolder<S>(
         isBroadcast ? StreamController<S>.broadcast() : StreamController<S>(),
@@ -55,7 +56,7 @@ abstract class Bloc {
   ///
   /// Returns `null` if this [Bloc] was closed.
   /// Throws [ArgumentError] if state of such type was not registered.
-  S initialState<S>() => isDisposed ?  null : _store[S].initialState;
+  S initialState<S>() => isDisposed ? null : _store[S].initialState;
 
   /// Checks whether a state of `S` type was registered before.
   ///
@@ -85,9 +86,9 @@ abstract class Bloc {
   /// Returns [StreamSubscription] that provide possibility to pause, resume or cancel [source].
   @protected
   StreamSubscription<S> addStateSource<S>(Future<S> source,
-      {void Function(S data) onData,
-        void Function() onDone,
-        void Function(dynamic error) onError}) =>
+          {void Function(S data) onData,
+          void Function() onDone,
+          void Function(dynamic error) onError}) =>
       addStatesSource(source.asStream(),
           onData: onData, onDone: onDone, onError: onError);
 
@@ -102,8 +103,8 @@ abstract class Bloc {
   @protected
   StreamSubscription<S> addStatesSource<S>(Stream<S> source,
       {void Function(S data) onData,
-        void Function() onDone,
-        void Function(dynamic error) onError}) {
+      void Function() onDone,
+      void Function(dynamic error) onError}) {
     // ignore: close_sinks
     StreamController<S> controller = isDisposed ? null : _store[S].controller;
     return controller?.addSource(source,
@@ -124,14 +125,14 @@ abstract class Bloc {
     final resultCompleter = Completer<Result>();
     _navigationControllerWrapper.add(
         RouteData<Result>(RouteSettings(name: routeName, arguments: arguments),
-                (Future<Result> result) {
-              if (resultCompleter.isCompleted) {
-                throw StateError(
-                    'Navigation result has been already returned. This error has occurred because several Routers try to handle same navigation action. To avoid it try to use precondition functions in your BlocProvider or RouteListener.');
-              } else {
-                resultCompleter.complete(result);
-              }
-            }));
+            (Future<Result> result) {
+      if (resultCompleter.isCompleted) {
+        throw StateError(
+            'Navigation result has been already returned. This error has occurred because several Routers try to handle same navigation action. To avoid it try to use precondition functions in your BlocProvider or RouteListener.');
+      } else {
+        resultCompleter.complete(result);
+      }
+    }));
     return resultCompleter.future;
   }
 
@@ -167,10 +168,12 @@ abstract class Bloc {
   @protected
   StreamSubscription<RouteData> addNavigationSource(Stream<RouteData> source,
       {void Function(RouteData data) onData,
-        void Function() onDone,
-        void Function(dynamic error) onError}) {
-    return isDisposed ? null : _navigationControllerWrapper._streamController
-        .addSource(source, onData: onData, onDone: onDone, onError: onError);
+      void Function() onDone,
+      void Function(dynamic error) onError}) {
+    return isDisposed
+        ? null
+        : _navigationControllerWrapper._streamController.addSource(source,
+            onData: onData, onDone: onDone, onError: onError);
   }
 
   /// Returns states stream according to type `S`.
@@ -178,12 +181,14 @@ abstract class Bloc {
   /// Returns `null` if this [Bloc] was closed.
   ///
   /// Throws [ArgumentError] if state of such type was not registered.
-  Stream<S> getStateStream<S>() => isDisposed ? null : _store[S].controller.stream;
+  Stream<S> getStateStream<S>() =>
+      isDisposed ? null : _store[S].controller.stream;
 
   /// Returns navigation stream.
   ///
   /// Returns `null` if this [Bloc] was closed.
-  Stream<RouteData> get navigationStream => isDisposed ? null : _navigationControllerWrapper.stream;
+  Stream<RouteData> get navigationStream =>
+      isDisposed ? null : _navigationControllerWrapper.stream;
 
   /// Releases resources and closes streams.
   void dispose() {
