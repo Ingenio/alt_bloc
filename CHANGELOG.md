@@ -1,3 +1,7 @@
+## [1.0.0+1] - 2020/04/28
+* code format
+* README.md update
+
 ## [1.0.0] - 2020/04/28 - Major release
 * New `BlocConsumer` widget has been implemented.
 * `BlocBuilder`, `BlocProvider` and `RouteListener` widgets have been refactored.
