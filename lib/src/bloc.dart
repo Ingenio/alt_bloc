@@ -123,14 +123,20 @@ abstract class Bloc {
       return null;
     }
     final resultCompleter = Completer<Result>();
-    _navigationControllerWrapper.add(
-        RouteData<Result>(RouteSettings(name: routeName, arguments: arguments),
-            (Future<Result> result) {
+    _navigationControllerWrapper.add(RouteData(
+        RouteSettings(name: routeName, arguments: arguments), (Future result) {
       if (resultCompleter.isCompleted) {
         throw StateError(
             'Navigation result has been already returned. This error has occurred because several Routers try to handle same navigation action. To avoid it try to use precondition functions in your BlocProvider or RouteListener.');
       } else {
-        resultCompleter.complete(result);
+        resultCompleter.complete(result.then((value) {
+          try {
+            return value as Result;
+          } catch (e) {
+            throw ArgumentError('Result value type is ${value.runtimeType}, '
+                '$Result expected. Please, checkcheck addNavigation() method call.');
+          }
+        }));
       }
     }));
     return resultCompleter.future;
