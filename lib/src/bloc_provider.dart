@@ -92,7 +92,7 @@ class BlocProvider<B extends Bloc> extends BlocSubscriber<B, RouteData> {
 
   final B Function() create;
   final Widget child;
-  final Router router;
+  final BlocRouter router;
   final UpdateShouldNotify<B> shouldNotify;
 
   @override
