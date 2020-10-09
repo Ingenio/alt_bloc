@@ -129,7 +129,7 @@ abstract class Bloc {
         throw StateError(
             'Navigation result has been already returned. This error has occurred because several Routers try to handle same navigation action. To avoid it try to use precondition functions in your BlocProvider or RouteListener.');
       } else {
-        resultCompleter.complete(result.then((value) {
+        resultCompleter.complete(result?.then((value) {
           try {
             return value as Result;
           } catch (e) {
