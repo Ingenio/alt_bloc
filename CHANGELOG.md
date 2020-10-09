@@ -1,3 +1,9 @@
+## [1.0.0+2] - 2020/10/09
+* **BREAKING CHANGES** Router function has been renamed to BlocRouter to avoid namespace conflict
+ with Router widget that was added in Flutter 1.22.
+* Navigation typecast issue that appear when pass concrete type to generic parameter for
+ addNavigation() method has been fixed.
+ 
 ## [1.0.0+1] - 2020/04/28
 * code format
 * README.md update
@@ -8,11 +14,11 @@
 * `Bloc` public interface has been redesigned.
 * New `Bloc` methods and properties have been added: `Bloc.isDisposed`, `Bloc.containsState()`,
  `Bloc.addNavigationSource()`.
-**BREAKING CHANGES**
-* The way access to state and navigation events of `Bloc` has been changed. `Bloc.listenNavigation()` method has been changed to `Bloc.navigationStream` property. `Bloc.listenState()` has been
+* **BREAKING CHANGES** The way access to state and navigation events of `Bloc` has been changed. `Bloc
+.listenNavigation()` method has been changed to `Bloc.navigationStream` property. `Bloc.listenState()` has been
  changed to `Bloc.getStateStream()`.
-* Method `Bloc.addStreamSource()` has been renamed to `Bloc.addStatesSource()`.
-* Method `Bloc.addFutureSource()` has been renamed to `Bloc.addStateSource()`.
+* **BREAKING CHANGES** Method `Bloc.addStreamSource()` has been renamed to `Bloc.addStatesSource()`.
+* **BREAKING CHANGES** Method `Bloc.addFutureSource()` has been renamed to `Bloc.addStateSource()`.
 
 ## [0.1.2+3] - 2020/03/13
 * Issue with throwing `ArgumentError` after call `addState` method for disposed bloc has been
