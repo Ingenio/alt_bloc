@@ -134,7 +134,7 @@ abstract class Bloc {
             return value as Result;
           } catch (e) {
             throw ArgumentError('Result value type is ${value.runtimeType}, '
-                '$Result expected. Please, checkcheck addNavigation() method call.');
+                '$Result expected. Please, check addNavigation() method call.');
           }
         }));
       }
