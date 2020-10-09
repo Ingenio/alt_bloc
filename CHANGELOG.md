@@ -1,3 +1,7 @@
+## [1.0.0+3] - 2020/10/09
+* **HOT FIX** Error `NoSuchMethodError: The method 'then' was called on null.` that has been thrown
+ when `BlocRouter` returns `null` has been fixed.
+
 ## [1.0.0+2] - 2020/10/09
 * **BREAKING CHANGES** Router function has been renamed to BlocRouter to avoid namespace conflict
  with Router widget that was added in Flutter 1.22.
