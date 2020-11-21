@@ -6,7 +6,7 @@ import 'precondition.dart';
 
 /// Signature of function that use to listen for navigation events and return navigation result.
 typedef BlocRouter<Result> = Future<Result> Function(
-    BuildContext context, String name, dynamic args);
+    BuildContext context, String? name, dynamic? args);
 
 /// [Widget] that subscribes on [Bloc.navigationStream], listen for navigation actions and handle them.
 ///  If [bloc] was not provided [Provider.of] will be used by default.
@@ -37,14 +37,12 @@ typedef BlocRouter<Result> = Future<Result> Function(
 /// ```
 class RouteListener<B extends Bloc> extends BlocWidget<B, RouteData> {
   const RouteListener(
-      {Key key,
-      @required this.child,
-      @required this.router,
-      B bloc,
-      Precondition<RouteData> precondition})
-      : assert(child != null),
-        assert(router != null),
-        super(key: key, bloc: bloc, precondition: precondition);
+      {Key? key,
+      required this.child,
+      required this.router,
+      B? bloc,
+      Precondition<RouteData>? precondition})
+      : super(key: key, bloc: bloc, precondition: precondition);
 
   final BlocRouter router;
   final Widget child;
@@ -66,5 +64,5 @@ class _RouteListenerState<B extends Bloc>
   }
 
   @override
-  Stream<RouteData> get stream => bloc.navigationStream;
+  Stream<RouteData>? get stream => bloc?.navigationStream;
 }
