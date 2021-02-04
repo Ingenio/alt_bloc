@@ -32,7 +32,7 @@ import 'package:flutter/widgets.dart';
 abstract class Bloc {
   final _store = _StateHoldersStore();
   final _navigationControllerWrapper = _NavigationStreamControllerWrapper(
-      StreamController<RouteData>.broadcast());
+      StreamController<RouteData>.broadcast(sync: true));
   bool _isDisposed = false;
 
   /// Registers state of `S` type that can be processed by this [Bloc].
