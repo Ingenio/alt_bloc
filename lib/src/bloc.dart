@@ -106,7 +106,8 @@ abstract class Bloc {
       void Function()? onDone,
       void Function(dynamic error)? onError}) {
     // ignore: close_sinks
-    StreamController<S>? controller = isDisposed ? null : _store[S].controller as StreamController<S>;
+    StreamController<S>? controller =
+        isDisposed ? null : _store[S].controller as StreamController<S>;
     return controller?.addSource(source,
         onData: onData, onDone: onDone, onError: onError);
   }

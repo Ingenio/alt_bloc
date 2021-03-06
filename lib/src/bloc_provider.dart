@@ -16,7 +16,7 @@ class Provider<B extends Bloc> extends InheritedWidget {
     required this.bloc,
     required Widget child,
     this.shouldNotify,
-  })  : super(key: key, child: child);
+  }) : super(key: key, child: child);
 
   final B bloc;
   final UpdateShouldNotify<B>? shouldNotify;
@@ -33,7 +33,8 @@ class Provider<B extends Bloc> extends InheritedWidget {
   static B? of<B extends Bloc>(BuildContext context, {bool listen = false}) {
     final Provider<B>? provider = listen
         ? context.dependOnInheritedWidgetOfExactType<Provider<B>>()
-        : context.getElementForInheritedWidgetOfExactType<Provider<B>>()?.widget as Provider<B>;
+        : context.getElementForInheritedWidgetOfExactType<Provider<B>>()?.widget
+            as Provider<B>;
     return provider?.bloc;
   }
 }
@@ -84,7 +85,7 @@ class BlocProvider<B extends Bloc> extends BlocSubscriber<B, RouteData> {
     this.router,
     this.shouldNotify,
     Precondition<RouteData>? routerPrecondition,
-  })  : super(key: key, precondition: routerPrecondition);
+  }) : super(key: key, precondition: routerPrecondition);
 
   final B Function() create;
   final Widget child;
@@ -97,8 +98,7 @@ class BlocProvider<B extends Bloc> extends BlocSubscriber<B, RouteData> {
 
 class _BlocProviderState<B extends Bloc>
     extends BlocSubscriberState<B, RouteData, BlocProvider<B>> {
-
-  late B _bloc;
+  late final B _bloc;
 
   @override
   void initState() {
