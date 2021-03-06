@@ -7,22 +7,22 @@ import 'bloc_provider.dart';
 import 'precondition.dart';
 
 abstract class BlocSubscriber<B extends Bloc, S> extends StatefulWidget {
-  const BlocSubscriber({Key key, this.precondition}) : super(key: key);
+  const BlocSubscriber({Key? key, this.precondition}) : super(key: key);
 
-  final Precondition<S> precondition;
+  final Precondition<S>? precondition;
 }
 
 abstract class BlocSubscriberState<B extends Bloc, S,
     T extends BlocSubscriber<B, S>> extends State<T> {
-  StreamSubscription<S> _subscription;
-  S currentState;
-  S previousState;
+  StreamSubscription<S>? _subscription;
+  S? currentState;
+  S? previousState;
 
   @protected
-  Stream<S> get stream;
+  Stream<S>? get stream;
 
   @protected
-  S get initialState => null;
+  S? get initialState => null;
 
   @override
   void initState() {
@@ -57,15 +57,15 @@ abstract class BlocSubscriberState<B extends Bloc, S,
 }
 
 abstract class BlocWidget<B extends Bloc, S> extends BlocSubscriber<B, S> {
-  const BlocWidget({Key key, this.bloc, Precondition<S> precondition})
+  const BlocWidget({Key? key, this.bloc, Precondition<S>? precondition})
       : super(key: key, precondition: precondition);
 
-  final B bloc;
+  final B? bloc;
 }
 
 abstract class BlocWidgetState<B extends Bloc, S, T extends BlocWidget<B, S>>
     extends BlocSubscriberState<B, S, T> {
-  B bloc;
+  B? bloc;
 
   @override
   void initState() {
@@ -74,13 +74,13 @@ abstract class BlocWidgetState<B extends Bloc, S, T extends BlocWidget<B, S>>
   }
 
   @override
-  void didUpdateWidget(BlocWidget<B, S> oldWidget) {
-    didUpdateBloc(oldWidget.bloc);
+  void didUpdateWidget(covariant T oldWidget) {
     super.didUpdateWidget(oldWidget);
+    didUpdateBloc(oldWidget.bloc);
   }
 
   @protected
-  void didUpdateBloc(B oldBloc) {
+  void didUpdateBloc(B? oldBloc) {
     final currentBloc = widget.bloc ?? Provider.of(context);
     if (oldBloc != null && oldBloc != currentBloc) {
       bloc = currentBloc;
@@ -89,7 +89,7 @@ abstract class BlocWidgetState<B extends Bloc, S, T extends BlocWidget<B, S>>
   }
 
   @protected
-  void onBlocChanged(B bloc) {
+  void onBlocChanged(B? bloc) {
     _unsubscribe();
     _subscribe();
   }

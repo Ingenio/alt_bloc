@@ -42,7 +42,7 @@ abstract class Bloc {
   /// You can pass object that will define [initialState].
   /// Throws [StateError] if this method was called twice for the same type or if this [Bloc] was closed.
   @protected
-  void registerState<S>({bool isBroadcast = false, S initialState}) {
+  void registerState<S>({bool isBroadcast = false, S? initialState}) {
     if (isDisposed) {
       throw StateError(
           'This bloc was closed. You can\'t register state for closed bloc');
@@ -56,7 +56,7 @@ abstract class Bloc {
   ///
   /// Returns `null` if this [Bloc] was closed.
   /// Throws [ArgumentError] if state of such type was not registered.
-  S initialState<S>() => isDisposed ? null : _store[S].initialState;
+  S? initialState<S>() => isDisposed ? null : _store[S].initialState;
 
   /// Checks whether a state of `S` type was registered before.
   ///
@@ -85,10 +85,10 @@ abstract class Bloc {
   /// Throws [ArgumentError] if state of such type was not registered.
   /// Returns [StreamSubscription] that provide possibility to pause, resume or cancel [source].
   @protected
-  StreamSubscription<S> addStateSource<S>(Future<S> source,
-          {void Function(S data) onData,
-          void Function() onDone,
-          void Function(dynamic error) onError}) =>
+  StreamSubscription<S>? addStateSource<S>(Future<S> source,
+          {void Function(S data)? onData,
+          void Function()? onDone,
+          void Function(dynamic error)? onError}) =>
       addStatesSource(source.asStream(),
           onData: onData, onDone: onDone, onError: onError);
 
@@ -101,12 +101,13 @@ abstract class Bloc {
   /// **WARNING!!!** This class doesn't respond for cancellation and closing of [source] stream. Developer should do
   /// it on his own, if necessary.
   @protected
-  StreamSubscription<S> addStatesSource<S>(Stream<S> source,
-      {void Function(S data) onData,
-      void Function() onDone,
-      void Function(dynamic error) onError}) {
+  StreamSubscription<S>? addStatesSource<S>(Stream<S> source,
+      {void Function(S data)? onData,
+      void Function()? onDone,
+      void Function(dynamic error)? onError}) {
     // ignore: close_sinks
-    StreamController<S> controller = isDisposed ? null : _store[S].controller;
+    StreamController<S>? controller =
+        isDisposed ? null : _store[S].controller as StreamController<S>;
     return controller?.addSource(source,
         onData: onData, onDone: onDone, onError: onError);
   }
@@ -118,13 +119,16 @@ abstract class Bloc {
   /// [RouteData.resultConsumer] can be called once and only once, otherwise [StateError] will be thrown.
   /// The 'Result' type argument is the type of the return value.
   @protected
-  Future<Result> addNavigation<Result>({String routeName, dynamic arguments}) {
+  Future<Result>? addNavigation<Result>({
+    String? routeName,
+    dynamic? arguments,
+  }) {
     if (isDisposed) {
       return null;
     }
     final resultCompleter = Completer<Result>();
     _navigationControllerWrapper.add(RouteData(
-        RouteSettings(name: routeName, arguments: arguments), (Future result) {
+        RouteSettings(name: routeName, arguments: arguments), (Future? result) {
       if (resultCompleter.isCompleted) {
         throw StateError(
             'Navigation result has been already returned. This error has occurred because several Routers try to handle same navigation action. To avoid it try to use precondition functions in your BlocProvider or RouteListener.');
@@ -172,10 +176,12 @@ abstract class Bloc {
   /// }
   /// ```
   @protected
-  StreamSubscription<RouteData> addNavigationSource(Stream<RouteData> source,
-      {void Function(RouteData data) onData,
-      void Function() onDone,
-      void Function(dynamic error) onError}) {
+  StreamSubscription<RouteData>? addNavigationSource(
+    Stream<RouteData> source, {
+    void Function(RouteData data)? onData,
+    void Function()? onDone,
+    void Function(dynamic error)? onError,
+  }) {
     return isDisposed
         ? null
         : _navigationControllerWrapper._streamController.addSource(source,
@@ -187,13 +193,13 @@ abstract class Bloc {
   /// Returns `null` if this [Bloc] was closed.
   ///
   /// Throws [ArgumentError] if state of such type was not registered.
-  Stream<S> getStateStream<S>() =>
-      isDisposed ? null : _store[S].controller.stream;
+  Stream<S>? getStateStream<S>() =>
+      isDisposed ? null : (_store[S].controller as StreamController<S>).stream;
 
   /// Returns navigation stream.
   ///
   /// Returns `null` if this [Bloc] was closed.
-  Stream<RouteData> get navigationStream =>
+  Stream<RouteData>? get navigationStream =>
       isDisposed ? null : _navigationControllerWrapper.stream;
 
   /// Releases resources and closes streams.
@@ -214,12 +220,12 @@ class RouteData<T> {
 }
 
 /// Signature of callbacks that use to return navigation result to the [Bloc].
-typedef ResultConsumer<T> = void Function(Future<T>);
+typedef ResultConsumer<T> = void Function(Future<T>?);
 
 class _StateHolder<S> {
   final StreamController<S> controller;
 
-  final S initialState;
+  final S? initialState;
 
   _StateHolder(this.controller, {this.initialState});
 }
@@ -227,9 +233,9 @@ class _StateHolder<S> {
 extension _BlocStreamController<T> on StreamController<T> {
   /// This function returns _ImmutableStreamSubscription to avoid that onData or onError handlers will be replaced.
   StreamSubscription<T> addSource(Stream<T> source,
-      {void Function(T data) onData,
-      void Function() onDone,
-      void Function(dynamic error) onError}) {
+      {void Function(T data)? onData,
+      void Function()? onDone,
+      void Function(dynamic error)? onError}) {
     return _ImmutableStreamSubscription(source.listen((T data) {
       sink.add(data);
       onData?.call(data);
@@ -246,7 +252,8 @@ class _ImmutableStreamSubscription<T> implements StreamSubscription<T> {
   final StreamSubscription<T> _subscription;
 
   @override
-  Future<E> asFuture<E>([E futureValue]) => _subscription.asFuture(futureValue);
+  Future<E> asFuture<E>([E? futureValue]) =>
+      _subscription.asFuture(futureValue);
 
   @override
   Future cancel() => _subscription.cancel();
@@ -255,25 +262,25 @@ class _ImmutableStreamSubscription<T> implements StreamSubscription<T> {
   bool get isPaused => _subscription.isPaused;
 
   @override
-  void onData(void Function(T data) handleData) {
+  void onData(void Function(T data)? handleData) {
     throw UnsupportedError(
         'Method onData() doesn\'t supported by this instance of StreamSubscription.');
   }
 
   @override
-  void onDone(void Function() handleDone) {
+  void onDone(void Function()? handleDone) {
     throw UnsupportedError(
         'Method onDone() doesn\'t supported by this instance of StreamSubscription.');
   }
 
   @override
-  void onError(Function handleError) {
+  void onError(Function? handleError) {
     throw UnsupportedError(
         'Method onError() doesn\'t supported by this instance of StreamSubscription.');
   }
 
   @override
-  void pause([Future resumeSignal]) {
+  void pause([Future? resumeSignal]) {
     _subscription.pause(resumeSignal);
   }
 
@@ -287,7 +294,7 @@ class _NavigationStreamControllerWrapper<T> {
   _NavigationStreamControllerWrapper(this._streamController) {
     _streamController.onListen = () {
       if (_lastEvent != null) {
-        add(_lastEvent);
+        add(_lastEvent!);
         _lastEvent = null;
       }
     };
@@ -295,7 +302,7 @@ class _NavigationStreamControllerWrapper<T> {
 
   final StreamController<T> _streamController;
 
-  T _lastEvent;
+  T? _lastEvent;
 
   bool add(T event) {
     if (_streamController.hasListener) {
@@ -316,11 +323,11 @@ class _NavigationStreamControllerWrapper<T> {
   Stream<T> get stream => _streamController.stream;
 }
 
-class _StateHoldersStore extends MapBase<Type, _StateHolder<dynamic>> {
-  final _stateHolders = <Type, _StateHolder<dynamic>>{};
+class _StateHoldersStore extends MapBase<Type, _StateHolder> {
+  final _stateHolders = <Type, _StateHolder>{};
 
   @override
-  _StateHolder operator [](Object key) {
+  _StateHolder operator [](Object? key) {
     return _stateHolders[key] ??
         (throw ArgumentError('State of $key type was not '
             'found as registered. Please check that you passed correct type to Bloc.addState<T>() method or check that you '
@@ -342,5 +349,5 @@ class _StateHoldersStore extends MapBase<Type, _StateHolder<dynamic>> {
   Iterable<Type> get keys => _stateHolders.keys;
 
   @override
-  _StateHolder remove(Object key) => _stateHolders.remove(key);
+  _StateHolder? remove(Object? key) => _stateHolders.remove(key);
 }

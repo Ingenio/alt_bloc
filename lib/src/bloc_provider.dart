@@ -11,31 +11,30 @@ typedef UpdateShouldNotify<T> = bool Function(T previous, T current);
 /// [InheritedWidget] that encapsulated by [BlocProvider] and allow [BlocProvider.child] widgets tree to obtain the
 /// [Bloc] object.
 class Provider<B extends Bloc> extends InheritedWidget {
-  const Provider._({Key key, @required B bloc, Widget child, this.shouldNotify})
-      : assert(bloc != null),
-        bloc = bloc,
-        super(key: key, child: child);
+  const Provider._({
+    Key? key,
+    required this.bloc,
+    required Widget child,
+    this.shouldNotify,
+  }) : super(key: key, child: child);
 
   final B bloc;
-  final UpdateShouldNotify<B> shouldNotify;
+  final UpdateShouldNotify<B>? shouldNotify;
 
   @override
-  bool updateShouldNotify(Provider oldWidget) {
-    return shouldNotify != null
-        ? shouldNotify(oldWidget.bloc, bloc)
-        : oldWidget.bloc != bloc;
+  bool updateShouldNotify(Provider<B> oldWidget) {
+    return shouldNotify?.call(oldWidget.bloc, bloc) ?? oldWidget.bloc != bloc;
   }
 
   /// Static function that returns [Bloc] of type `B`.
   ///
   /// If [listen] defines as `true`, each time when [Bloc] object changes, this [context] is rebuilt. Custom
   /// Blocs comparison rules could be defined in [BlocProvider.shouldNotify] function.
-  static B of<B extends Bloc>(BuildContext context, {bool listen = false}) {
-    final Provider<B> provider = listen
+  static B? of<B extends Bloc>(BuildContext context, {bool listen = false}) {
+    final Provider<B>? provider = listen
         ? context.dependOnInheritedWidgetOfExactType<Provider<B>>()
-        : context
-            .getElementForInheritedWidgetOfExactType<Provider<B>>()
-            ?.widget;
+        : context.getElementForInheritedWidgetOfExactType<Provider<B>>()?.widget
+            as Provider<B>;
     return provider?.bloc;
   }
 }
@@ -80,20 +79,18 @@ class Provider<B extends Bloc> extends InheritedWidget {
 
 class BlocProvider<B extends Bloc> extends BlocSubscriber<B, RouteData> {
   const BlocProvider({
-    Key key,
-    @required this.child,
-    @required this.create,
+    Key? key,
+    required this.child,
+    required this.create,
     this.router,
     this.shouldNotify,
-    Precondition<RouteData> routerPrecondition,
-  })  : assert(child != null),
-        assert(create != null),
-        super(key: key, precondition: routerPrecondition);
+    Precondition<RouteData>? routerPrecondition,
+  }) : super(key: key, precondition: routerPrecondition);
 
   final B Function() create;
   final Widget child;
-  final BlocRouter router;
-  final UpdateShouldNotify<B> shouldNotify;
+  final BlocRouter? router;
+  final UpdateShouldNotify<B>? shouldNotify;
 
   @override
   _BlocProviderState<B> createState() => _BlocProviderState<B>();
@@ -101,7 +98,7 @@ class BlocProvider<B extends Bloc> extends BlocSubscriber<B, RouteData> {
 
 class _BlocProviderState<B extends Bloc>
     extends BlocSubscriberState<B, RouteData, BlocProvider<B>> {
-  B _bloc;
+  late final B _bloc;
 
   @override
   void initState() {
@@ -119,19 +116,19 @@ class _BlocProviderState<B extends Bloc>
   }
 
   @override
-  Stream<RouteData> get stream =>
+  Stream<RouteData>? get stream =>
       widget.router == null ? null : _bloc.navigationStream;
 
   @override
   void onNewState(RouteData state) {
-    final result =
-        widget.router(context, state.settings.name, state.settings.arguments);
+    final result = widget.router
+        ?.call(context, state.settings.name, state.settings.arguments);
     state.resultConsumer(result);
   }
 
   @override
   void dispose() {
-    _bloc?.dispose();
+    _bloc.dispose();
     super.dispose();
   }
 }

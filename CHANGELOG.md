@@ -1,3 +1,6 @@
+## [2.0.0-nullsafety.0] - 2020/11/28
+* Migration to Dart null safety.
+
 ## [1.0.0+3] - 2020/10/09
 * **HOT FIX** Error `NoSuchMethodError: The method 'then' was called on null.` that has been thrown
  when `BlocRouter` returns `null` has been fixed.

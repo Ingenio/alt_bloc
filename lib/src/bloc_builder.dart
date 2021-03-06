@@ -7,7 +7,7 @@ import 'bloc_widget.dart';
 import 'precondition.dart';
 
 /// Signature of function that use to build and return [Widget] depending on [state].
-typedef BlocWidgetBuilder<S> = Widget Function(BuildContext context, S state);
+typedef BlocWidgetBuilder<S> = Widget Function(BuildContext context, S? state);
 
 /// [Widget] that accept [Bloc] of type `B` and subscribes on states stream of type `S`.
 ///
@@ -23,9 +23,12 @@ typedef BlocWidgetBuilder<S> = Widget Function(BuildContext context, S state);
 /// )
 /// ```
 class BlocBuilder<B extends Bloc, S> extends BlocWidget<B, S> {
-  const BlocBuilder(
-      {Key key, B bloc, @required this.builder, Precondition<S> precondition})
-      : super(key: key, bloc: bloc, precondition: precondition);
+  const BlocBuilder({
+    Key? key,
+    B? bloc,
+    required this.builder,
+    Precondition<S>? precondition,
+  }) : super(key: key, bloc: bloc, precondition: precondition);
 
   final BlocWidgetBuilder<S> builder;
 
@@ -36,7 +39,7 @@ class BlocBuilder<B extends Bloc, S> extends BlocWidget<B, S> {
 class _BlocBuilderState<B extends Bloc, S>
     extends BlocWidgetState<B, S, BlocBuilder<B, S>> {
   @override
-  S get initialState => bloc.initialState<S>();
+  S? get initialState => bloc?.initialState<S>();
 
   @override
   void onNewState(S state) {
@@ -44,7 +47,7 @@ class _BlocBuilderState<B extends Bloc, S>
   }
 
   @override
-  Stream<S> get stream => bloc.getStateStream<S>();
+  Stream<S>? get stream => bloc?.getStateStream<S>();
 
   @override
   Widget build(BuildContext context) => widget.builder(context, currentState);
