@@ -1,3 +1,6 @@
+## [2.0.0] - 2021/03/09
+* Null safety release.
+
 ## [2.0.0-nullsafety.0] - 2020/11/28
 * Migration to Dart null safety.
 
