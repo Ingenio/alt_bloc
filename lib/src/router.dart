@@ -64,5 +64,5 @@ class _RouteListenerState<B extends Bloc>
   }
 
   @override
-  Stream<RouteData>? get stream => bloc?.navigationStream;
+  Stream<RouteData>? get stream => bloc.navigationStream;
 }
