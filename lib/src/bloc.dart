@@ -42,13 +42,19 @@ abstract class Bloc {
   /// You can pass object that will define [initialState].
   /// Throws [StateError] if this method was called twice for the same type or if this [Bloc] was closed.
   @protected
-  void registerState<S>({bool isBroadcast = false, S? initialState}) {
+  void registerState<S>({
+    bool isBroadcast = false,
+    S? initialState,
+    bool asyncNavigation = false,
+  }) {
     if (isDisposed) {
       throw StateError(
           'This bloc was closed. You can\'t register state for closed bloc');
     }
     _store[S] = _StateHolder<S>(
-        isBroadcast ? StreamController<S>.broadcast() : StreamController<S>(),
+        isBroadcast
+            ? StreamController<S>.broadcast(sync: !asyncNavigation)
+            : StreamController<S>(sync: !asyncNavigation),
         initialState: initialState);
   }
 
@@ -121,7 +127,7 @@ abstract class Bloc {
   @protected
   Future<Result>? addNavigation<Result>({
     String? routeName,
-    dynamic? arguments,
+    dynamic arguments,
   }) {
     if (isDisposed) {
       return null;
