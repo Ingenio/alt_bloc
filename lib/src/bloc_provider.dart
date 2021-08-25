@@ -30,13 +30,19 @@ class Provider<B extends Bloc> extends InheritedWidget {
   ///
   /// If [listen] defines as `true`, each time when [Bloc] object changes, this [context] is rebuilt. Custom
   /// Blocs comparison rules could be defined in [BlocProvider.shouldNotify] function.
-  static B? of<B extends Bloc>(BuildContext context, {bool listen = false}) {
+  static B of<B extends Bloc>(BuildContext context, {bool listen = false}) {
     final Provider<B>? provider = listen
         ? context.dependOnInheritedWidgetOfExactType<Provider<B>>()
         : context.getElementForInheritedWidgetOfExactType<Provider<B>>()?.widget
             as Provider<B>;
-    return provider?.bloc;
+    return provider?.bloc ?? (throw ProviderNotFoundError());
   }
+}
+
+class ProviderNotFoundError extends Error {
+  @override
+  String toString() => 'Provider was not found. Check that you have added '
+      'BlocProvider to Widgets hierarchy tree!';
 }
 
 /// [Widget] that responsible to create the [Bloc] with help of [create] function. Accepts any [Widget] as child and

@@ -29,7 +29,7 @@ class BlocConsumer<B extends Bloc, S> extends BlocWidget<B, S> {
 class _BlocConsumerState<B extends Bloc, S>
     extends BlocWidgetState<B, S, BlocConsumer<B, S>> {
   @override
-  S? get initialState => bloc?.initialState<S>();
+  S? get initialState => bloc.initialState<S>();
 
   @override
   Widget build(BuildContext context) => widget.child;
@@ -38,5 +38,5 @@ class _BlocConsumerState<B extends Bloc, S>
   void onNewState(S state) => widget.consumer.call(state);
 
   @override
-  Stream<S>? get stream => bloc?.getStateStream<S>();
+  Stream<S>? get stream => bloc.getStateStream<S>();
 }

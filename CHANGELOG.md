@@ -1,3 +1,8 @@
+## [2.0.1] - 2021/08/25
+* Obtaining Bloc by Provider has been improved.
+* Property 'asyncNavigation' that change navigation stream as sync/async has been added. Sync by 
+  default.  
+
 ## [2.0.0] - 2021/03/09
 * Null safety release.
 
