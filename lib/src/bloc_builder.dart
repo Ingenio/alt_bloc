@@ -47,7 +47,7 @@ class _BlocBuilderState<B extends Bloc, S>
   }
 
   @override
-  Stream<S>? get stream => bloc?.getStateStream<S>();
+  Stream<S>? get stream => bloc.getStateStream<S>();
 
   @override
   Widget build(BuildContext context) => widget.builder(context, currentState);
