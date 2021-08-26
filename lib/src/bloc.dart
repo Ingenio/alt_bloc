@@ -41,6 +41,7 @@ abstract class Bloc {
   /// [isBroadcast] define type of stream that will be created.
   /// You can pass object that will define [initialState].
   /// Throws [StateError] if this method was called twice for the same type or if this [Bloc] was closed.
+  /// Throws [StateError] if this [Bloc] was disposed.
   @protected
   void registerState<S>({
     bool isBroadcast = false,
@@ -60,38 +61,40 @@ abstract class Bloc {
 
   /// Returns initial value for state of `S` type.
   ///
-  /// Returns `null` if this [Bloc] was closed.
+  /// Throws [StateError] if this [Bloc] was disposed.
   /// Throws [ArgumentError] if state of such type was not registered.
-  S? initialState<S>() => isDisposed ? null : _store[S].initialState;
+  S initialState<S>() => isDisposed
+      ? throw StateError('This Bloc was disposed.')
+      : _store[S].initialState;
 
   /// Checks whether a state of `S` type was registered before.
   ///
-  /// Returns `false` if this [Bloc] was closed.
-  bool containsState<S>() => isDisposed ? false : _store.containsKey(S);
+  /// Throws [StateError] if this [Bloc] was disposed.
+  bool containsState<S>() => isDisposed
+      ? throw StateError('This Bloc was disposed.')
+      : _store.containsKey(S);
 
   /// Defines whether that [Bloc] was closed.
   bool get isDisposed => _isDisposed;
 
   /// Adds state of `S` type to the stream that corresponding to state type.
   ///
-  /// Returns false if this [Bloc] was closed and state was not added to the stream.
+  /// Throws [StateError] if this [Bloc] was disposed.
   /// Throws [ArgumentError] if state of such type was not registered.
   @protected
-  bool addState<S>(S uiState) {
-    if (isDisposed) {
-      return false;
-    }
-    _store[S].controller.sink.add(uiState);
-    return true;
-  }
+  void addState<S>(S uiState) => isDisposed
+      ? throw StateError('You cannot add state to this Bloc, because this Bloc '
+          'was disposed.')
+      : _store[S].controller.sink.add(uiState);
 
   /// Adds [Future] that should be returned by state of `S` type as source of state.
   ///
   /// Callbacks [onData], [onDone], [onError] provide possibility to handle [source].
   /// Throws [ArgumentError] if state of such type was not registered.
+  /// Throws [StateError] if this [Bloc] was disposed.
   /// Returns [StreamSubscription] that provide possibility to pause, resume or cancel [source].
   @protected
-  StreamSubscription<S>? addStateSource<S>(Future<S> source,
+  StreamSubscription<S> addStateSource<S>(Future<S> source,
           {void Function(S data)? onData,
           void Function()? onDone,
           void Function(dynamic error)? onError}) =>
@@ -102,35 +105,41 @@ abstract class Bloc {
   ///
   /// Callbacks [onData], [onDone], [onError] help to handle [source].
   /// Throws [ArgumentError] if state of such type was not registered.
+  /// Throws [StateError] if this [Bloc] was disposed.
   /// Returns [StreamSubscription] that provide possibility to pause, resume or cancel [source].
   ///
   /// **WARNING!!!** This class doesn't respond for cancellation and closing of [source] stream. Developer should do
   /// it on his own, if necessary.
   @protected
-  StreamSubscription<S>? addStatesSource<S>(Stream<S> source,
+  StreamSubscription<S> addStatesSource<S>(Stream<S> source,
       {void Function(S data)? onData,
       void Function()? onDone,
       void Function(dynamic error)? onError}) {
     // ignore: close_sinks
-    StreamController<S>? controller =
-        isDisposed ? null : _store[S].controller as StreamController<S>;
-    return controller?.addSource(source,
+    StreamController<S>? controller = isDisposed
+        ? throw StateError(
+            'You cannot add state to this Bloc, because this Bloc '
+            'was disposed.')
+        : _store[S].controller as StreamController<S>;
+    return controller.addSource(source,
         onData: onData, onDone: onDone, onError: onError);
   }
 
   /// Adds navigation data to [navigationStream].
   ///
   /// Method arguments wrap with [RouteData] object and pass to [navigationStream].
+  /// Throws [StateError] if this [Bloc] was disposed.
   /// Returns a [Future] that completes to the result value when [RouteData.resultConsumer] function will be called.
   /// [RouteData.resultConsumer] can be called once and only once, otherwise [StateError] will be thrown.
   /// The 'Result' type argument is the type of the return value.
   @protected
-  Future<Result>? addNavigation<Result>({
+  Future<Result> addNavigation<Result>({
     String? routeName,
     dynamic arguments,
   }) {
     if (isDisposed) {
-      return null;
+      throw StateError(
+          'You cannot use navigation, because this Bloc was disposed.');
     }
     final resultCompleter = Completer<Result>();
     _navigationControllerWrapper.add(RouteData(
@@ -155,6 +164,7 @@ abstract class Bloc {
   /// Adds [Stream] of [RouteData] as navigation events source.
   ///
   /// Callbacks [onData], [onDone], [onError] help to handle [source].
+  /// Throws [StateError] if this [Bloc] was disposed.
   /// Returns [StreamSubscription] that provide possibility to pause, resume or cancel [source].
   /// Preferable to use this method for aggregation of blocs.
   /// ```dart
@@ -182,14 +192,15 @@ abstract class Bloc {
   /// }
   /// ```
   @protected
-  StreamSubscription<RouteData>? addNavigationSource(
+  StreamSubscription<RouteData> addNavigationSource(
     Stream<RouteData> source, {
     void Function(RouteData data)? onData,
     void Function()? onDone,
     void Function(dynamic error)? onError,
   }) {
     return isDisposed
-        ? null
+        ? throw StateError(
+            'You cannot use navigation, because this Bloc was disposed.')
         : _navigationControllerWrapper._streamController.addSource(source,
             onData: onData, onDone: onDone, onError: onError);
   }
@@ -199,14 +210,18 @@ abstract class Bloc {
   /// Returns `null` if this [Bloc] was closed.
   ///
   /// Throws [ArgumentError] if state of such type was not registered.
-  Stream<S>? getStateStream<S>() =>
-      isDisposed ? null : (_store[S].controller as StreamController<S>).stream;
+  /// Throws [StateError] if this [Bloc] was disposed.
+  Stream<S> getStateStream<S>() => isDisposed
+      ? throw StateError('Bloc was disposed.')
+      : (_store[S].controller as StreamController<S>).stream;
 
   /// Returns navigation stream.
   ///
+  /// Throws [StateError] if this [Bloc] was disposed.
   /// Returns `null` if this [Bloc] was closed.
-  Stream<RouteData>? get navigationStream =>
-      isDisposed ? null : _navigationControllerWrapper.stream;
+  Stream<RouteData> get navigationStream => isDisposed
+      ? throw StateError('Bloc was disposed.')
+      : _navigationControllerWrapper.stream;
 
   /// Releases resources and closes streams.
   void dispose() {
