@@ -12,7 +12,7 @@ class CounterScreen extends StatelessWidget {
       child: RouteListener<CounterBloc>(
         child: CounterLayout(title: 'Bloc Demo Home Page'),
         precondition: (prevData, data) =>
-            (data.settings.arguments as int) % 5 == 0,
+            (data.arguments as int) % 5 == 0,
         router: (context, name, args) {
           return showDialog(
               context: context,

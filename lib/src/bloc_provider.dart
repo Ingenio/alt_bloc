@@ -128,7 +128,7 @@ class _BlocProviderState<B extends Bloc>
   @override
   void onNewState(RouteData state) {
     final result = widget.router
-        ?.call(context, state.settings.name, state.settings.arguments);
+        ?.call(context, state.name, state.arguments);
     state.resultConsumer(result);
   }
 
