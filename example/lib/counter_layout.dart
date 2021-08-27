@@ -17,28 +17,33 @@ class CounterLayout extends StatelessWidget {
       body: Stack(
         children: <Widget>[
           Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text(
-                  'You have pushed the button this many times:',
-                ),
-                BlocBuilder<CounterBloc, int>(
-                  /*precondition: (prevCount, count) => count % 2 == 0*/
-                  builder: (_, count) {
-                    return Text(
-                      '$count',
-                      style: Theme.of(context).textTheme.headline4,
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-          Center(
             child: BlocBuilder<CounterBloc, bool>(
-              builder: (_, inProgress) =>
-                  inProgress ? CircularProgressIndicator() : Container(),
+              builder: (_, inProgress) => inProgress
+                  ? CircularProgressIndicator()
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          'You have pushed the button this many times:',
+                        ),
+                        BlocBuilder<CounterBloc, int>(
+                          builder: (_, count) {
+                            return Text(
+                              '$count',
+                              style: Theme.of(context).textTheme.headline4,
+                            );
+                          },
+                        ),
+                        BlocBuilder<CounterBloc, int>(
+                          builder: (_, count) {
+                            return Text(
+                              '$count',
+                              style: Theme.of(context).textTheme.headline5,
+                            );
+                          },
+                        ),
+                      ],
+                    ),
             ),
           ),
         ],

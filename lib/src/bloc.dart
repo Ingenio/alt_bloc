@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 
 /// Business Logic Component (BLoC).
 ///
@@ -30,33 +30,32 @@ import 'package:flutter/widgets.dart';
 ///
 /// Widgets should use [getStateStream] and [navigationStream] to subscribe on [Bloc] events.
 abstract class Bloc {
-  final _store = _StateHoldersStore();
-  final _navigationControllerWrapper = _NavigationStreamControllerWrapper(
-      StreamController<RouteData>.broadcast());
+
+  Bloc({bool asyncNavigation = false})
+      : _navigationController =
+            _StateDeliveryController<RouteData>(sync: !asyncNavigation);
+
+  final _store = _DeliveryControllersStore();
+  final _navigationController;
   bool _isDisposed = false;
 
   /// Registers state of `S` type that can be processed by this [Bloc].
   ///
   /// Creates stream and all necessary resources that need to process state of `S` type.
-  /// [isBroadcast] define type of stream that will be created.
   /// You can pass object that will define [initialState].
   /// Throws [StateError] if this method was called twice for the same type or if this [Bloc] was closed.
   /// Throws [StateError] if this [Bloc] was disposed.
   @protected
   void registerState<S>({
-    bool isBroadcast = false,
     S? initialState,
-    bool asyncNavigation = false,
   }) {
     if (isDisposed) {
       throw StateError(
           'This bloc was closed. You can\'t register state for closed bloc');
     }
-    _store[S] = _StateHolder<S>(
-        isBroadcast
-            ? StreamController<S>.broadcast(sync: !asyncNavigation)
-            : StreamController<S>(sync: !asyncNavigation),
-        initialState: initialState);
+    _store[S] = _StateDeliveryController<S>(
+      initialState: initialState,
+    );
   }
 
   /// Returns initial value for state of `S` type.
@@ -82,10 +81,10 @@ abstract class Bloc {
   /// Throws [StateError] if this [Bloc] was disposed.
   /// Throws [ArgumentError] if state of such type was not registered.
   @protected
-  void addState<S>(S uiState) => isDisposed
+  void addState<S>(S? uiState) => isDisposed
       ? throw StateError('You cannot add state to this Bloc, because this Bloc '
           'was disposed.')
-      : _store[S].controller.sink.add(uiState);
+      : _store[S].add(uiState);
 
   /// Adds [Future] that should be returned by state of `S` type as source of state.
   ///
@@ -115,14 +114,12 @@ abstract class Bloc {
       {void Function(S data)? onData,
       void Function()? onDone,
       void Function(dynamic error)? onError}) {
-    // ignore: close_sinks
-    StreamController<S>? controller = isDisposed
-        ? throw StateError(
+    return isDisposed
+        ? (throw StateError(
             'You cannot add state to this Bloc, because this Bloc '
-            'was disposed.')
-        : _store[S].controller as StreamController<S>;
-    return controller.addSource(source,
-        onData: onData, onDone: onDone, onError: onError);
+            'was disposed.'))
+        : (_store[S] as _StateDeliveryController<S>).addSource(source,
+            onData: onData, onDone: onDone, onError: onError);
   }
 
   /// Adds navigation data to [navigationStream].
@@ -142,22 +139,25 @@ abstract class Bloc {
           'You cannot use navigation, because this Bloc was disposed.');
     }
     final resultCompleter = Completer<Result>();
-    _navigationControllerWrapper.add(RouteData(
-        RouteSettings(name: routeName, arguments: arguments), (Future? result) {
-      if (resultCompleter.isCompleted) {
-        throw StateError(
-            'Navigation result has been already returned. This error has occurred because several Routers try to handle same navigation action. To avoid it try to use precondition functions in your BlocProvider or RouteListener.');
-      } else {
-        resultCompleter.complete(result?.then((value) {
-          try {
-            return value as Result;
-          } catch (e) {
-            throw ArgumentError('Result value type is ${value.runtimeType}, '
-                '$Result expected. Please, check addNavigation() method call.');
-          }
-        }));
-      }
-    }));
+    _navigationController.add(RouteData(
+      name: routeName,
+      arguments: arguments,
+      resultConsumer: (Future? result) {
+        if (resultCompleter.isCompleted) {
+          throw StateError(
+              'Navigation result has been already returned. This error has occurred because several Routers try to handle same navigation action. To avoid it try to use precondition functions in your BlocProvider or RouteListener.');
+        } else {
+          resultCompleter.complete(result?.then((value) {
+            try {
+              return value as Result;
+            } catch (e) {
+              throw ArgumentError('Result value type is ${value.runtimeType}, '
+                  '$Result expected. Please, check addNavigation() method call.');
+            }
+          }));
+        }
+      },
+    ));
     return resultCompleter.future;
   }
 
@@ -201,7 +201,7 @@ abstract class Bloc {
     return isDisposed
         ? throw StateError(
             'You cannot use navigation, because this Bloc was disposed.')
-        : _navigationControllerWrapper._streamController.addSource(source,
+        : _navigationController.addSource(source,
             onData: onData, onDone: onDone, onError: onError);
   }
 
@@ -213,7 +213,7 @@ abstract class Bloc {
   /// Throws [StateError] if this [Bloc] was disposed.
   Stream<S> getStateStream<S>() => isDisposed
       ? throw StateError('Bloc was disposed.')
-      : (_store[S].controller as StreamController<S>).stream;
+      : _store[S].stream as Stream<S>;
 
   /// Returns navigation stream.
   ///
@@ -221,44 +221,77 @@ abstract class Bloc {
   /// Returns `null` if this [Bloc] was closed.
   Stream<RouteData> get navigationStream => isDisposed
       ? throw StateError('Bloc was disposed.')
-      : _navigationControllerWrapper.stream;
+      : _navigationController.stream;
 
   /// Releases resources and closes streams.
   void dispose() {
     _isDisposed = true;
-    _store.forEach((_, holder) => holder.controller.close());
+    _store.forEach((_, holder) => holder.close());
     _store.clear();
-    _navigationControllerWrapper.close();
+    _navigationController.close();
   }
 }
 
 /// The class that contains all information about navigation.
 class RouteData<T> {
-  final RouteSettings settings;
+  final String? name;
+  final Object? arguments;
   final ResultConsumer<T> resultConsumer;
 
-  RouteData(this.settings, this.resultConsumer);
+  RouteData({
+    required this.resultConsumer,
+    this.name,
+    this.arguments,
+  });
 }
 
 /// Signature of callbacks that use to return navigation result to the [Bloc].
 typedef ResultConsumer<T> = void Function(Future<T>?);
 
-class _StateHolder<S> {
-  final StreamController<S> controller;
-
+class _StateDeliveryController<S> {
   final S? initialState;
+  S? _lastState;
+  final _subscribers = <MultiStreamController>[];
+  final StreamController<S?> _mainController;
+  late final Stream<S?> stream;
 
-  _StateHolder(this.controller, {this.initialState});
-}
+  _StateDeliveryController({this.initialState, bool sync = false})
+      : _mainController = StreamController<S>(sync: sync),
+        _lastState = initialState {
+    stream = Stream.multi((MultiStreamController<S?> controller) {
+      controller.onCancel = () {
+        _subscribers.remove(controller);
+      };
+      if (!_mainController.hasListener) {
+        _mainController.stream.listen((event) {
+          _lastState = event;
+          for (var subscriber in _subscribers) {
+            subscriber.addSync(event);
+          }
+        });
+      } else {
+        controller.addSync(_lastState);
+      }
+      _subscribers.add(controller);
+    });
+  }
 
-extension _BlocStreamController<T> on StreamController<T> {
-  /// This function returns _ImmutableStreamSubscription to avoid that onData or onError handlers will be replaced.
-  StreamSubscription<T> addSource(Stream<T> source,
-      {void Function(T data)? onData,
+  void add(S state) => _mainController.sink.add(state);
+
+  void close() {
+    for (var subscriber in _subscribers) {
+      subscriber.closeSync();
+    }
+    _subscribers.clear();
+    _mainController.close();
+  }
+
+  StreamSubscription<S> addSource(Stream<S> source,
+      {void Function(S data)? onData,
       void Function()? onDone,
       void Function(dynamic error)? onError}) {
-    return _ImmutableStreamSubscription(source.listen((T data) {
-      sink.add(data);
+    return _ImmutableStreamSubscription(source.listen((S data) {
+      _mainController.sink.add(data);
       onData?.call(data);
     })
       ..onDone(onDone)
@@ -311,64 +344,31 @@ class _ImmutableStreamSubscription<T> implements StreamSubscription<T> {
   }
 }
 
-class _NavigationStreamControllerWrapper<T> {
-  _NavigationStreamControllerWrapper(this._streamController) {
-    _streamController.onListen = () {
-      if (_lastEvent != null) {
-        add(_lastEvent!);
-        _lastEvent = null;
-      }
-    };
-  }
-
-  final StreamController<T> _streamController;
-
-  T? _lastEvent;
-
-  bool add(T event) {
-    if (_streamController.hasListener) {
-      if (!_streamController.isClosed) {
-        _streamController.sink.add(event);
-        return true;
-      }
-    } else {
-      _lastEvent = event;
-    }
-    return false;
-  }
-
-  void close() {
-    _streamController.close();
-  }
-
-  Stream<T> get stream => _streamController.stream;
-}
-
-class _StateHoldersStore extends MapBase<Type, _StateHolder> {
-  final _stateHolders = <Type, _StateHolder>{};
+class _DeliveryControllersStore extends MapBase<Type, _StateDeliveryController> {
+  final _controllersHolder = <Type, _StateDeliveryController>{};
 
   @override
-  _StateHolder operator [](Object? key) {
-    return _stateHolders[key] ??
+  _StateDeliveryController operator [](Object? key) {
+    return _controllersHolder[key] ??
         (throw ArgumentError('State of $key type was not '
             'found as registered. Please check that you passed correct type to Bloc.addState<T>() method or check that you '
             'called Bloc.registerState<T>() method before.'));
   }
 
   @override
-  void operator []=(Type key, _StateHolder value) {
-    _stateHolders.containsKey(key)
+  void operator []=(Type key, _StateDeliveryController value) {
+    _controllersHolder.containsKey(key)
         ? throw ArgumentError(
             'State with type $key already has been registered')
-        : _stateHolders[key] = value;
+        : _controllersHolder[key] = value;
   }
 
   @override
-  void clear() => _stateHolders.clear();
+  void clear() => _controllersHolder.clear();
 
   @override
-  Iterable<Type> get keys => _stateHolders.keys;
+  Iterable<Type> get keys => _controllersHolder.keys;
 
   @override
-  _StateHolder? remove(Object? key) => _stateHolders.remove(key);
+  _StateDeliveryController? remove(Object? key) => _controllersHolder.remove(key);
 }
