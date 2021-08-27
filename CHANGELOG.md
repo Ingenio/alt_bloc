@@ -1,3 +1,10 @@
+## [2.1.0] - 2021/08/25
+* Bloc entity has been redesigned and state delivery system has been improved.
+* **BREAKING CHANGES** `isBroadcast` argument has been removed, you no need it anymore.
+* **BREAKING CHANGES** `RouteData` class has been refactored and normalized. No need call 
+  `settings` property to receive `name` or `arguments` of route, they available directly from 
+  `RouteData` object.
+
 ## [2.0.1] - 2021/08/25
 * Obtaining Bloc by Provider has been improved.
 * Property 'asyncNavigation' that change navigation stream as sync/async has been added. Sync by 

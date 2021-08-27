@@ -1,6 +1,6 @@
 name: alt_bloc
 description: A library that provides components for more easier and boilerplate implementation of the BLoC architecture pattern.
-version: 2.0.1
+version: 2.1.0
 
 homepage: https://github.com/dashdevs/alt_bloc
 
