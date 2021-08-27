@@ -30,7 +30,6 @@ import 'package:flutter/foundation.dart';
 ///
 /// Widgets should use [getStateStream] and [navigationStream] to subscribe on [Bloc] events.
 abstract class Bloc {
-
   Bloc({bool asyncNavigation = false})
       : _navigationController =
             _StateDeliveryController<RouteData>(sync: !asyncNavigation);
@@ -344,7 +343,8 @@ class _ImmutableStreamSubscription<T> implements StreamSubscription<T> {
   }
 }
 
-class _DeliveryControllersStore extends MapBase<Type, _StateDeliveryController> {
+class _DeliveryControllersStore
+    extends MapBase<Type, _StateDeliveryController> {
   final _controllersHolder = <Type, _StateDeliveryController>{};
 
   @override
@@ -370,5 +370,6 @@ class _DeliveryControllersStore extends MapBase<Type, _StateDeliveryController> 
   Iterable<Type> get keys => _controllersHolder.keys;
 
   @override
-  _StateDeliveryController? remove(Object? key) => _controllersHolder.remove(key);
+  _StateDeliveryController? remove(Object? key) =>
+      _controllersHolder.remove(key);
 }

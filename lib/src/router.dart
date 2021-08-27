@@ -58,8 +58,7 @@ class _RouteListenerState<B extends Bloc>
 
   @override
   void onNewState(RouteData state) {
-    final result =
-        widget.router(context, state.name, state.arguments);
+    final result = widget.router(context, state.name, state.arguments);
     state.resultConsumer(result);
   }
 
