@@ -1,4 +1,4 @@
-## [2.1.0] - 2021/08/25
+## [2.1.0] - 2021/08/27
 * Bloc entity has been redesigned and state delivery system has been improved.
 * **BREAKING CHANGES** `isBroadcast` argument has been removed, you no need it anymore.
 * **BREAKING CHANGES** `RouteData` class has been refactored and normalized. No need call 
