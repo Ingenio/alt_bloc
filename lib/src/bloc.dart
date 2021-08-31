@@ -253,13 +253,17 @@ class _StateDeliveryController<S> {
   final _subscribers = <MultiStreamController>[];
   final StreamController<S?> _mainController;
   late final Stream<S?> stream;
+  bool _isClosed = false;
 
   _StateDeliveryController({this.initialState, bool sync = false})
       : _mainController = StreamController<S>(sync: sync),
         _lastState = initialState {
     stream = Stream.multi((MultiStreamController<S?> controller) {
       controller.onCancel = () {
-        _subscribers.remove(controller);
+        if (!_isClosed) {
+          _subscribers.remove(controller);
+          controller.closeSync();
+        }
       };
       if (!_mainController.hasListener) {
         _mainController.stream.listen((event) {
@@ -278,6 +282,7 @@ class _StateDeliveryController<S> {
   void add(S state) => _mainController.sink.add(state);
 
   void close() {
+    _isClosed = true;
     for (var subscriber in _subscribers) {
       subscriber.closeSync();
     }
