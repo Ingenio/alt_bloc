@@ -1,4 +1,4 @@
-# alt_bloc
+# alt_bloc  [![pub package](https://img.shields.io/pub/v/alt_bloc.svg)](https://pub.dev/packages/alt_bloc)
 Library for BLoC design pattern implementation.
 
 ## Authors
