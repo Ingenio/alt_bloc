@@ -1,3 +1,6 @@
+## [2.1.0+2] - 2021/09/21
+* Throwing of StateError in case if Bloc was disposed has been removed.
+
 ## [2.1.0+1] - 2021/08/31 
 * **HOT FIX**  ConcurrentModificationError that appear during iteration by subscribers controllers 
   collection has been fixed.
