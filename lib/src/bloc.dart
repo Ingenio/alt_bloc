@@ -204,7 +204,7 @@ abstract class Bloc {
 
   /// Returns navigation stream.
   /// Returns `null` if this [Bloc] was disposed.
-  Stream<RouteData> get navigationStream =>
+  Stream<RouteData?>? get navigationStream =>
       isDisposed ? null : _navigationController.stream;
 
   /// Releases resources and closes streams.
