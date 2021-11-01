@@ -79,7 +79,7 @@ abstract class Bloc {
   ///
   /// Throws [ArgumentError] if state of such type was not registered.
   @protected
-  void addState<S>(S? uiState) {
+  void addState<S>(S uiState) {
     if (!isDisposed) {
       _store[S].add(uiState);
     }
