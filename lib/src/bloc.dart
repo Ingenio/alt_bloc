@@ -48,6 +48,7 @@ abstract class Bloc {
   void registerState<S>({
     S? initialState,
   }) {
+    assert(!isNullable<S>() && initialState == null);
     if (isDisposed) {
       throw StateError(
           'This bloc was closed. You can\'t register state for closed bloc');
@@ -56,6 +57,8 @@ abstract class Bloc {
       initialState: initialState,
     );
   }
+
+  bool isNullable<T>() => null is T;
 
   /// Returns initial value for state of `S` type.
   /// Returns `null` if this [Bloc] was disposed.
