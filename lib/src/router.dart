@@ -52,16 +52,20 @@ class RouteListener<B extends Bloc> extends BlocWidget<B, RouteData> {
 }
 
 class _RouteListenerState<B extends Bloc>
-    extends BlocWidgetState<B, RouteData?, RouteListener<B>> {
+    extends BlocWidgetState<B, RouteData, RouteListener<B>> {
+
+  @override
+  RouteData get initialState => RouteData(resultConsumer: (_){});
+
   @override
   Widget build(BuildContext context) => widget.child;
 
   @override
-  void onNewState(RouteData? state) {
-    final result = widget.router(context, state?.name, state?.arguments);
-    state?.resultConsumer(result);
+  void onNewState(RouteData state) {
+    final result = widget.router(context, state.name, state.arguments);
+    state.resultConsumer(result);
   }
 
   @override
-  Stream<RouteData?>? get stream => bloc.navigationStream;
+  Stream<RouteData>? get stream => bloc.navigationStream;
 }

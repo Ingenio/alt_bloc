@@ -103,12 +103,13 @@ class BlocProvider<B extends Bloc> extends BlocSubscriber<B, RouteData> {
 }
 
 class _BlocProviderState<B extends Bloc>
-    extends BlocSubscriberState<B, RouteData?, BlocProvider<B>> {
+    extends BlocSubscriberState<B, RouteData, BlocProvider<B>> {
   late final B _bloc;
 
   @override
   void initState() {
     _bloc = widget.create();
+    currentState = RouteData(resultConsumer: (_) {});
     super.initState();
   }
 
@@ -122,13 +123,13 @@ class _BlocProviderState<B extends Bloc>
   }
 
   @override
-  Stream<RouteData?>? get stream =>
+  Stream<RouteData>? get stream =>
       widget.router == null ? null : _bloc.navigationStream;
 
   @override
-  void onNewState(RouteData? state) {
-    final result = widget.router?.call(context, state?.name, state?.arguments);
-    state?.resultConsumer(result);
+  void onNewState(RouteData state) {
+    final result = widget.router?.call(context, state.name, state.arguments);
+    state.resultConsumer(result);
   }
 
   @override
