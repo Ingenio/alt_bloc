@@ -7,7 +7,7 @@ import 'bloc_widget.dart';
 import 'precondition.dart';
 
 /// Signature of function that use to build and return [Widget] depending on [state].
-typedef BlocWidgetBuilder<S> = Widget Function(BuildContext context, S? state);
+typedef BlocWidgetBuilder<S> = Widget Function(BuildContext context, S state);
 
 /// [Widget] that accept [Bloc] of type `B` and subscribes on states stream of type `S`.
 ///
@@ -38,13 +38,9 @@ class BlocBuilder<B extends Bloc, S> extends BlocWidget<B, S> {
 
 class _BlocBuilderState<B extends Bloc, S>
     extends BlocWidgetState<B, S, BlocBuilder<B, S>> {
-  @override
-  S? get initialState => bloc.initialState<S>();
 
   @override
-  void onNewState(S state) {
-    setState(() {});
-  }
+  void onNewState(S state) => setState(() {});
 
   @override
   Stream<S>? get stream => bloc.getStateStream<S>();

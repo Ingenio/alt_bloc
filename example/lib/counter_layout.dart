@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'counter_bloc.dart';
 
 class CounterLayout extends StatelessWidget {
-  CounterLayout({Key key, this.title}) : super(key: key);
+  CounterLayout({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
@@ -17,8 +17,8 @@ class CounterLayout extends StatelessWidget {
       body: Stack(
         children: <Widget>[
           Center(
-            child: BlocBuilder<CounterBloc, bool>(
-              builder: (_, inProgress) => inProgress
+            child: BlocBuilder<CounterBloc, bool?>(
+              builder: (_, inProgress) => inProgress ?? false
                   ? CircularProgressIndicator()
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -26,7 +26,7 @@ class CounterLayout extends StatelessWidget {
                         Text(
                           'You have pushed the button this many times:',
                         ),
-                        BlocBuilder<CounterBloc, int>(
+                        BlocBuilder<CounterBloc, int?>(
                           builder: (_, count) {
                             return Text(
                               '$count',
@@ -34,7 +34,7 @@ class CounterLayout extends StatelessWidget {
                             );
                           },
                         ),
-                        BlocBuilder<CounterBloc, int>(
+                        BlocBuilder<CounterBloc, int?>(
                           builder: (_, count) {
                             return Text(
                               '$count',

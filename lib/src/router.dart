@@ -53,6 +53,10 @@ class RouteListener<B extends Bloc> extends BlocWidget<B, RouteData> {
 
 class _RouteListenerState<B extends Bloc>
     extends BlocWidgetState<B, RouteData, RouteListener<B>> {
+
+  @override
+  RouteData get initialState => RouteData(resultConsumer: (_){});
+
   @override
   Widget build(BuildContext context) => widget.child;
 

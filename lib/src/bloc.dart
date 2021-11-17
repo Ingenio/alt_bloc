@@ -48,6 +48,7 @@ abstract class Bloc {
   void registerState<S>({
     S? initialState,
   }) {
+    assert(isNullable<S>() || initialState != null);
     if (isDisposed) {
       throw StateError(
           'This bloc was closed. You can\'t register state for closed bloc');
@@ -57,11 +58,15 @@ abstract class Bloc {
     );
   }
 
+  bool isNullable<T>() => null is T;
+
   /// Returns initial value for state of `S` type.
   /// Returns `null` if this [Bloc] was disposed.
   ///
   /// Throws [ArgumentError] if state of such type was not registered.
-  S? initialState<S>() => isDisposed ? null : _store[S].initialState;
+  S initialState<S>() => isDisposed
+      ? throw StateError('Bloc has been already disposed')
+      : _store[S].initialState;
 
   /// Checks whether a state of `S` type was registered before.
   /// Returns `false` if this [Bloc] was disposed.
@@ -74,7 +79,7 @@ abstract class Bloc {
   ///
   /// Throws [ArgumentError] if state of such type was not registered.
   @protected
-  void addState<S>(S? uiState) {
+  void addState<S>(S uiState) {
     if (!isDisposed) {
       _store[S].add(uiState);
     }
@@ -204,7 +209,7 @@ abstract class Bloc {
 
   /// Returns navigation stream.
   /// Returns `null` if this [Bloc] was disposed.
-  Stream<RouteData> get navigationStream =>
+  Stream<RouteData>? get navigationStream =>
       isDisposed ? null : _navigationController.stream;
 
   /// Releases resources and closes streams.
@@ -236,8 +241,8 @@ class _StateDeliveryController<S> {
   final S? initialState;
   S? _lastState;
   final _subscribers = <MultiStreamController>[];
-  final StreamController<S?> _mainController;
-  late final Stream<S?> stream;
+  final StreamController<S> _mainController;
+  late final Stream<S> stream;
   bool _isClosed = false;
 
   _StateDeliveryController({this.initialState, bool sync = false})

@@ -1,3 +1,6 @@
+## [2.1.0+3] - 2021/11/17
+* Package stability for sound null-safety has been improved.   
+
 ## [2.1.0+2] - 2021/09/21
 * Throwing of StateError in case if Bloc was disposed has been removed.
 

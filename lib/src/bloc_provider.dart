@@ -109,6 +109,7 @@ class _BlocProviderState<B extends Bloc>
   @override
   void initState() {
     _bloc = widget.create();
+    currentState = RouteData(resultConsumer: (_) {});
     super.initState();
   }
 
