@@ -85,6 +85,17 @@ abstract class Bloc {
     }
   }
 
+  /// Get last state of [S] type.
+  ///
+  /// Throws [StateError] if state bloc was already disposed.
+  @protected
+  S getState<S>() {
+    if (!isDisposed) {
+      return _store[S]._lastState;
+    }
+    throw StateError('Bloc has been already disposed');
+  }
+
   /// Adds [Future] that should be returned by state of `S` type as source of state.
   ///
   /// Callbacks [onData], [onDone], [onError] provide possibility to handle [source].
