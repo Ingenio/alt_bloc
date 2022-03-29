@@ -1,3 +1,6 @@
+## [2.1.0+4] - 2022/03/29
+* Method `Bloc.getState<T>()` that allows to obtain last state has been added.
+
 ## [2.1.0+3] - 2021/11/17
 * Package stability for sound null-safety has been improved.   
 
