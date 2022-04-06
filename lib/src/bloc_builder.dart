@@ -38,7 +38,6 @@ class BlocBuilder<B extends Bloc, S> extends BlocWidget<B, S> {
 
 class _BlocBuilderState<B extends Bloc, S>
     extends BlocWidgetState<B, S, BlocBuilder<B, S>> {
-
   @override
   void onNewState(S state) => setState(() {});
 

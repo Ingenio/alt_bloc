@@ -1,3 +1,6 @@
+## [2.1.0+5] - 2022/04/06
+* Some stability improvements that allow avoiding exceptions if `Bloc` is disposed. 
+
 ## [2.1.0+4] - 2022/03/29
 * Method `Bloc.getState<T>()` that allows to obtain last state has been added.
 

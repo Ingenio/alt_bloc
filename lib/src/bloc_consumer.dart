@@ -28,7 +28,6 @@ class BlocConsumer<B extends Bloc, S> extends BlocWidget<B, S> {
 
 class _BlocConsumerState<B extends Bloc, S>
     extends BlocWidgetState<B, S, BlocConsumer<B, S>> {
-
   @override
   Widget build(BuildContext context) => widget.child;
 
