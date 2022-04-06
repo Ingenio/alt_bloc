@@ -288,8 +288,10 @@ class _StateDeliveryController<S> {
       void Function()? onDone,
       void Function(dynamic error)? onError}) {
     return _ImmutableStreamSubscription(source.listen((S data) {
-      _mainController.sink.add(data);
-      onData?.call(data);
+      if (!_isClosed) {
+        _mainController.sink.add(data);
+        onData?.call(data);
+      }
     })
       ..onDone(onDone)
       ..onError(onError));
